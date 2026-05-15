@@ -72,11 +72,17 @@ Falls eine Sprache fehlt, lassen Sie es uns wissen, und wir bemühen uns, diese 
 
 #### Update Component
 1. Open **HACS** → **Integrations**
+
 ![Download (1)](https://github.com/Elwinmage/ha-xsense-component/assets/15807572/3220c686-f53f-4766-9523-e3272a6ff104)
+
 2. Find **Heiman Home**
+
 ![img.png](image/img.png)
+
 3. Click ****UPDATE** or **Redownload****
+
 ![img_1.png](image/img_1.png)
+
 ### Method 2: Manual Installation via Samba/SFTP
 
 1. Download the latest release from [GitHub Releases](https://github.com/hass-user/heiman-home/releases)
@@ -85,8 +91,11 @@ Falls eine Sprache fehlt, lassen Sie es uns wissen, und wir bemühen uns, diese 
    ```
    /config/custom_components/heiman_home/
    ```
+   
 ![img_2.png](image/img_2.png)
+
 ![img_3.png](image/img_3.png)
+
 ### Method 3: One-key Shell via SSH/Terminal & SSH Add-on
 
 ```shell
