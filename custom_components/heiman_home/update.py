@@ -23,7 +23,6 @@ from .coordinator import HeimanDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: config_entries.ConfigEntry,

@@ -459,7 +459,7 @@ heiman_home/
 <a name="acknowledgments"></a>
 ## الشكر
 
-- [Heiman](https://www.heiman.hk) لتوفير منصة إنترنت الأشياء
+- [Heiman](www.heimantech.com) لتوفير منصة إنترنت الأشياء
 - مجتمع [Home Assistant](https://www.home-assistant.io)
 - [HACS](https://hacs.xyz) لإطار عمل الإضافة
 - جميع المساهمين والمختبرين

@@ -457,7 +457,7 @@ heiman_home/
 <a name="acknowledgments"></a>
 ## Благодарности
 
-- [Heiman](https://www.heiman.hk) за предоставление IoT платформы
+- [Heiman](www.heimantech.com) за предоставление IoT платформы
 - Сообщество [Home Assistant](https://www.home-assistant.io)
 - [HACS](https://hacs.xyz) за фреймворк интеграции
 - Всем участникам и тестировщикам

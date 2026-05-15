@@ -457,7 +457,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 <a name="acknowledgments"></a>
 ## Remerciements
 
-- [Heiman](https://www.heiman.hk) pour avoir fourni la plateforme IoT
+- [Heiman](www.heimantech.com) pour avoir fourni la plateforme IoT
 - Communauté [Home Assistant](https://www.home-assistant.io)
 - [HACS](https://hacs.xyz) pour le framework d'intégration
 - Tous les contributeurs et testeurs

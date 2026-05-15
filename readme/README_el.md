@@ -457,7 +457,7 @@ heiman_home/
 <a name="acknowledgments"></a>
 ## Ευχαριστίες
 
-- [Heiman](https://www.heiman.hk) για την παροχή της πλατφόρμας IoT
+- [Heiman](www.heimantech.com) για την παροχή της πλατφόρμας IoT
 - Κοινότητα [Home Assistant](https://www.home-assistant.io)
 - [HACS](https://hacs.xyz) για το framework ενσωμάτωσης
 - Όλοι οι συνεισφέροντες και οι δοκιμαστές

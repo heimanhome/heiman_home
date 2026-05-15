@@ -457,7 +457,7 @@ heiman_home/
 <a name="acknowledgments"></a>
 ## 致谢
 
-- [Heiman](https://www.heiman.hk) 提供 IoT 平台
+- [Heiman](www.heimantech.com) 提供 IoT 平台
 - [Home Assistant](https://www.home-assistant.io) 社区
 - [HACS](https://hacs.xyz) 提供集成框架
 - 所有贡献者和测试者

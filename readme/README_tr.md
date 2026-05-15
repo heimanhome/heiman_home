@@ -457,7 +457,7 @@ Bu proje MIT Lisansı altında lisanslanmıştır - ayrıntılar için [LICENSE]
 <a name="acknowledgments"></a>
 ## Teşekkürler
 
-- IoT platformunu sağladığı için [Heiman](https://www.heiman.hk)
+- IoT platformunu sağladığı için [Heiman](www.heimantech.com)
 - [Home Assistant](https://www.home-assistant.io) topluluğu
 - Entegrasyon çerçevesi için [HACS](https://hacs.xyz)
 - Tüm katkıda bulunanlar ve test edenler

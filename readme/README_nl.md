@@ -457,7 +457,7 @@ Dit project is gelicentieerd onder de MIT-licentie - zie het [LICENSE](LICENSE) 
 <a name="acknowledgments"></a>
 ## Erkenningen
 
-- [Heiman](https://www.heiman.hk) voor het bieden van het IoT-platform
+- [Heiman](www.heimantech.com) voor het bieden van het IoT-platform
 - [Home Assistant](https://www.home-assistant.io) community
 - [HACS](https://hacs.xyz) voor het integratieframework
 - Alle bijdragers en testers

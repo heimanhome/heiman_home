@@ -457,7 +457,7 @@ heiman_home/
 <a name="acknowledgments"></a>
 ## 謝辞
 
-- IoTプラットフォームを提供してくれた[Heiman](https://www.heiman.hk)
+- IoTプラットフォームを提供してくれた[Heiman](www.heimantech.com)
 - [Home Assistant](https://www.home-assistant.io)コミュニティ
 - インテグレーションフレームワークのための[HACS](https://hacs.xyz)
 - すべての貢献者とテスター
