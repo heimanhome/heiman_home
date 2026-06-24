@@ -660,6 +660,9 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
             # Register callback for device property updates
             self.mqtt_client.register_device_callback(self._on_device_property_update)
 
+            # Register callback for device online/offline status changes
+            self.mqtt_client.register_online_callback(self._on_device_status_change)
+
         except HeimanMQTTError as err:
             _LOGGER.error("Failed to initialize MQTT client: %s", err)
         except Exception as err:  # noqa: BLE001
@@ -729,6 +732,39 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
         if hasattr(self, "async_set_updated_data") and self.hass:
             # Use hass.add_job to schedule the update in the event loop
             # Pass the coroutine function and data as arguments
+            self.hass.add_job(self.async_set_updated_data, self.data)
+
+    def _on_device_status_change(
+        self,
+        device_id: str,
+        is_online: bool,
+        payload: dict,
+    ) -> None:
+        """Handle device online/offline status change from MQTT.
+
+        Args:
+            device_id: Device ID that changed status
+            is_online: True if device is online, False if offline
+            payload: Raw MQTT message payload
+        """
+        # Find device in coordinator data
+        device = self.data.devices.get(device_id)
+        if not device:
+            _LOGGER.debug(
+                "Device %s not found in coordinator data for status change", device_id
+            )
+            return
+
+        # Update device online status
+        device.online = is_online
+        _LOGGER.info(
+            "Device %s is now %s (via MQTT)",
+            device.device_name or device_id,
+            "online" if is_online else "offline",
+        )
+
+        # Schedule entity update if coordinator is set up
+        if hasattr(self, "async_set_updated_data") and self.hass:
             self.hass.add_job(self.async_set_updated_data, self.data)
 
     async def async_read_device_properties(self, device_id: str) -> None:

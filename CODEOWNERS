@@ -1,0 +1,20 @@
+# This is a CODEOWNERS file for the Heiman Home integration.
+# It defines who is responsible for reviewing changes to specific parts of the codebase.
+#
+# Format:
+# path/to/files @username1 @username2
+#
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for the entire repository
+* @heimanhome
+
+# Custom components
+custom_components/heiman_home/ @heimanhome
+
+# Tests
+tests/ @heimanhome
+
+# Documentation
+*.md @heimanhome
+readme/ @heimanhome
