@@ -49,7 +49,7 @@
 1. Откройте **HACS** → **Интеграции**
 2. Нажмите **+ ИССЛЕДОВАТЬ И ЗАГРУЗИТЬ РЕПОЗИТОРИИ**
 3. Найдите `Heiman Home` или нажмите на три точки (⋮) → **Пользовательские репозитории**
-4. Добавить репозиторий: `https://github.com/hass-user/heiman-home` с категорией `Integration`
+4. Добавить репозиторий: `https://github.com/heimanhome/heiman_home` с категорией `Integration`
 5. Нажмите **ЗАГРУЗИТЬ ЭТОТ РЕПОЗИТОРИЙ**
 
 #### Обновление компонента
@@ -61,7 +61,7 @@
    ![img_1.png](image/img_1.png)
 ### Способ 2: Ручная установка через Samba/SFTP
 
-1. Загрузите последнюю версию с [GitHub Releases](https://github.com/hass-user/heiman-home/releases)
+1. Загрузите последнюю версию с [GitHub Releases](https://github.com/heimanhome/heiman_home/releases)
 2. Распакуйте папку `heiman_home`
 3. Скопируйте папку `heiman_home` в директорию `custom_components` Home Assistant
    ```
@@ -465,9 +465,9 @@ heiman_home/
 <a name="support"></a>
 ## Поддержка
 
-- **GitHub Issues**: [Сообщить об ошибках или запросить функции](https://github.com/hass-user/heiman-home/issues)
+- **GitHub Issues**: [Сообщить об ошибках или запросить функции](https://github.com/heimanhome/heiman_home/issues)
 - **Форум сообщества Home Assistant**: [Обсуждение и получение помощи](https://community.home-assistant.io/)
-- **Документация**: [Полная документация](https://github.com/hass-user/heiman-home/wiki)
+- **Документация**: [Полная документация](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 

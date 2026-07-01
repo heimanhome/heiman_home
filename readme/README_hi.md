@@ -49,7 +49,7 @@
 1. खोलें **HACS** → **इंटीग्रेशन्स**
 2. क्लिक करें **+ रिपॉजिटरीज़ एक्सप्लोर एंड डाउनलोड**
 3. `Heiman Home` खोजें या तीन बिंदुओं (⋮) पर क्लिक करें → **कस्टम रिपॉजिटरीज़**
-4. रिपॉजिटरी जोड़ें: `https://github.com/hass-user/heiman-home` श्रेणी `Integration` के साथ
+4. रिपॉजिटरी जोड़ें: `https://github.com/heimanhome/heiman_home` श्रेणी `Integration` के साथ
 5. क्लिक करें **डाउनलोड दिस रिपॉजिटरी**
 
 #### घटक अपडेट करें
@@ -61,7 +61,7 @@
    ![img_1.png](image/img_1.png)
 ### विधि 2: Samba/SFTP के माध्यम से मैनुअल इंस्टॉलेशन
 
-1. [GitHub Releases](https://github.com/hass-user/heiman-home/releases) से नवीनतम संस्करण डाउनलोड करें
+1. [GitHub Releases](https://github.com/heimanhome/heiman_home/releases) से नवीनतम संस्करण डाउनलोड करें
 2. `heiman_home` फ़ोल्डर निकालें
 3. `heiman_home` फ़ोल्डर को अपने होम असिस्टेंट `custom_components` निर्देशिका में कॉपी करें
    ```
@@ -465,9 +465,9 @@ heiman_home/
 <a name="support"></a>
 ## सहायता
 
-- **GitHub Issues**: [बग रिपोर्ट करें या सुविधाओं का अनुरोध करें](https://github.com/hass-user/heiman-home/issues)
+- **GitHub Issues**: [बग रिपोर्ट करें या सुविधाओं का अनुरोध करें](https://github.com/heimanhome/heiman_home/issues)
 - **Home Assistant कम्युनिटी फोरम**: [चर्चा करें और सहायता प्राप्त करें](https://community.home-assistant.io/)
-- **दस्तावेज़ीकरण**: [पूर्ण दस्तावेज़ीकरण](https://github.com/hass-user/heiman-home/wiki)
+- **दस्तावेज़ीकरण**: [पूर्ण दस्तावेज़ीकरण](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 

@@ -49,7 +49,7 @@ Eksik bir dil varsa, lütfen bize bildirin. Eklemek için elimizden geleni yapac
 1. **HACS** → **Entegrasyonlar**'ı açın
 2. **+ DEPOLARI KEŞFET VE İNDİR**'e tıklayın
 3. `Heiman Home` araması yapın veya üç noktaya (⋮) tıklayın → **Özel Depolar**
-4. Depo ekle: `https://github.com/hass-user/heiman-home` kategori `Integration` ile
+4. Depo ekle: `https://github.com/heimanhome/heiman_home` kategori `Integration` ile
 5. **BU DEPOYU İNDİR**'e tıklayın
 
 #### Bileşeni Güncelleme
@@ -61,7 +61,7 @@ Eksik bir dil varsa, lütfen bize bildirin. Eklemek için elimizden geleni yapac
    ![img_1.png](image/img_1.png)
 ### Yöntem 2: Samba/SFTP Üzerinden Manuel Kurulum
 
-1. En son sürümü [GitHub Releases](https://github.com/hass-user/heiman-home/releases) adresinden indirin
+1. En son sürümü [GitHub Releases](https://github.com/heimanhome/heiman_home/releases) adresinden indirin
 2. `heiman_home` klasörünü çıkarın
 3. `heiman_home` klasörünü Home Assistant `custom_components` dizinine kopyalayın
    ```
@@ -465,9 +465,9 @@ Bu proje MIT Lisansı altında lisanslanmıştır - ayrıntılar için [LICENSE]
 <a name="support"></a>
 ## Destek
 
-- **GitHub Issues**: [Hata bildirin veya özellik isteyin](https://github.com/hass-user/heiman-home/issues)
+- **GitHub Issues**: [Hata bildirin veya özellik isteyin](https://github.com/heimanhome/heiman_home/issues)
 - **Home Assistant Topluluk Forumu**: [Tartışın ve yardım alın](https://community.home-assistant.io/)
-- **Belgeler**: [Tam belgeler](https://github.com/hass-user/heiman-home/wiki)
+- **Belgeler**: [Tam belgeler](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 

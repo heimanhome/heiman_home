@@ -49,7 +49,7 @@
 1. 打开 **HACS** → **集成**
 2. 点击 **+ 探索和下载存储库**
 3. 搜索 `Heiman Home` 或点击三个点 (⋮) → **自定义存储库**
-4. 添加存储库：`https://github.com/hass-user/heiman-home`，类别为 `Integration`
+4. 添加存储库：`https://github.com/heimanhome/heiman_home`，类别为 `Integration`
 5. 点击 **下载此存储库**
 
 #### 更新组件
@@ -61,7 +61,7 @@
    ![img_1.png](image/img_1.png)
 ### 方法 2：通过 Samba/SFTP 手动安装
 
-1. 从 [GitHub Releases](https://github.com/hass-user/heiman-home/releases) 下载最新版本
+1. 从 [GitHub Releases](https://github.com/heimanhome/heiman_home/releases) 下载最新版本
 2. 解压 `heiman_home` 文件夹
 3. 将 `heiman_home` 文件夹复制到您的 Home Assistant `custom_components` 目录
    ```
@@ -465,9 +465,9 @@ heiman_home/
 <a name="support"></a>
 ## 支持
 
-- **GitHub Issues**：[报告错误或请求功能](https://github.com/hass-user/heiman-home/issues)
+- **GitHub Issues**：[报告错误或请求功能](https://github.com/heimanhome/heiman_home/issues)
 - **Home Assistant 社区论坛**：[讨论和获取帮助](https://community.home-assistant.io/)
-- **文档**：[完整文档](https://github.com/hass-user/heiman-home/wiki)
+- **文档**：[完整文档](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 

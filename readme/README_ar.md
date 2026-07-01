@@ -51,7 +51,7 @@ xiu# Heiman Home لمنزل HomeAssistant
 1. افتح **HACS** → **الإضافات**
 2. انقر على **+ استكشاف وتنزيل المستودعات**
 3. ابحث عن `Heiman Home` أو انقر على النقاط الثلاث (⋮) → **المستودعات المخصصة**
-4. أضف المستودع: `https://github.com/hass-user/heiman-home` مع الفئة `Integration`
+4. أضف المستودع: `https://github.com/heimanhome/heiman_home` مع الفئة `Integration`
 5. انقر على **تنزيل هذا المستودع**
 
 #### تحديث المكون
@@ -63,7 +63,7 @@ xiu# Heiman Home لمنزل HomeAssistant
    ![img_1.png](image/img_1.png)
 ### الطريقة 2: التثبيت اليدوي عبر Samba/SFTP
 
-1. قم بتنزيل أحدث إصدار من [إصدارات GitHub](https://github.com/hass-user/heiman-home/releases)
+1. قم بتنزيل أحدث إصدار من [إصدارات GitHub](https://github.com/heimanhome/heiman_home/releases)
 2. استخرج مجلد `heiman_home`
 3. انسخ مجلد `heiman_home` إلى دليل `custom_components` في Home Assistant الخاص بك
    ```
@@ -467,9 +467,9 @@ heiman_home/
 <a name="support"></a>
 ## الدعم
 
-- **مشاكل GitHub**: [الإبلاغ عن أخطاء أو طلب ميزات](https://github.com/hass-user/heiman-home/issues)
+- **مشاكل GitHub**: [الإبلاغ عن أخطاء أو طلب ميزات](https://github.com/heimanhome/heiman_home/issues)
 - **منتدى مجتمع Home Assistant**: [النقاش والحصول على المساعدة](https://community.home-assistant.io/)
-- **الوثائق**: [الوثائق الكاملة](https://github.com/hass-user/heiman-home/wiki)
+- **الوثائق**: [الوثائق الكاملة](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 

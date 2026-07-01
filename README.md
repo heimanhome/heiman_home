@@ -67,7 +67,7 @@ Falls eine Sprache fehlt, lassen Sie es uns wissen, und wir bemühen uns, diese 
 1. Open **HACS** → **Integrations**
 2. Click **+ EXPLORE & DOWNLOAD REPOSITORIES**
 3. Search for `Heiman Home` or click the three dots (⋮) → **Custom repositories**
-4. Add repository: `https://github.com/hass-user/heiman-home` with category `Integration`
+4. Add repository: `https://github.com/heimanhome/heiman_home` with category `Integration`
 5. Click **DOWNLOAD THIS REPOSITORY**
 
 #### Update Component
@@ -85,7 +85,7 @@ Falls eine Sprache fehlt, lassen Sie es uns wissen, und wir bemühen uns, diese 
 
 ### Method 2: Manual Installation via Samba/SFTP
 
-1. Download the latest release from [GitHub Releases](https://github.com/hass-user/heiman-home/releases)
+1. Download the latest release from [GitHub Releases](https://github.com/heimanhome/heiman_home/releases)
 2. Extract the `heiman_home` folder
 3. Copy the `heiman_home` folder to your Home Assistant `custom_components` directory
    ```
@@ -492,9 +492,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <a name="support"></a>
 ## Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/hass-user/heiman-home/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/heimanhome/heiman_home/issues)
 - **Home Assistant Community Forum**: [Discuss and get help](https://community.home-assistant.io/)
-- **Documentation**: [Full documentation](https://github.com/hass-user/heiman-home/wiki)
+- **Documentation**: [Full documentation](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 

@@ -49,7 +49,7 @@
 1. **HACS** → **インテグレーション**を開く
 2. **+ リポジトリを探索してダウンロード**をクリック
 3. `Heiman Home`を検索するか、三点リーダー（⋮）→ **カスタムリポジトリ**をクリック
-4. リポジトリを追加: `https://github.com/hass-user/heiman-home` カテゴリ `Integration`
+4. リポジトリを追加: `https://github.com/heimanhome/heiman_home` カテゴリ `Integration`
 5. **このリポジトリをダウンロード**をクリック
 
 #### コンポーネントを更新
@@ -61,7 +61,7 @@
    ![img_1.png](image/img_1.png)
 ### 方法2: Samba/SFTP経由の手動インストール
 
-1. [GitHub Releases](https://github.com/hass-user/heiman-home/releases)から最新バージョンをダウンロード
+1. [GitHub Releases](https://github.com/heimanhome/heiman_home/releases)から最新バージョンをダウンロード
 2. `heiman_home`フォルダを抽出
 3. `heiman_home`フォルダをHome Assistantの`custom_components`ディレクトリにコピー
    ```
@@ -465,9 +465,9 @@ heiman_home/
 <a name="support"></a>
 ## サポート
 
-- **GitHub Issues**: [バグを報告または機能をリクエスト](https://github.com/hass-user/heiman-home/issues)
+- **GitHub Issues**: [バグを報告または機能をリクエスト](https://github.com/heimanhome/heiman_home/issues)
 - **Home Assistantコミュニティフォーラム**: [議論してヘルプを取得](https://community.home-assistant.io/)
-- **ドキュメント**: [完全なドキュメント](https://github.com/hass-user/heiman-home/wiki)
+- **ドキュメント**: [完全なドキュメント](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 

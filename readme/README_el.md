@@ -49,7 +49,7 @@
 1. Ανοίξτε **HACS** → **Ενσωματώσεις**
 2. Κάντε κλικ στο **+ ΕΞΕΡΕΥΝΗΣΗ & ΛΗΨΗ ΑΠΟΘΕΤΗΡΙΩΝ**
 3. Αναζητήστε `Heiman Home` ή κάντε κλικ στις τρεις τελείες (⋮) → **Προσαρμοσμένα αποθετήρια**
-4. Προσθήκη αποθετηρίου: `https://github.com/hass-user/heiman-home` με κατηγορία `Integration`
+4. Προσθήκη αποθετηρίου: `https://github.com/heimanhome/heiman_home` με κατηγορία `Integration`
 5. Κάντε κλικ στο **ΛΗΨΗ ΑΥΤΟΥ ΤΟΥ ΑΠΟΘΕΤΗΡΙΟΥ**
 
 #### Ενημέρωση Component
@@ -61,7 +61,7 @@
    ![img_1.png](image/img_1.png)
 ### Μέθοδος 2: Χειροκίνητη Εγκατάσταση μέσω Samba/SFTP
 
-1. Κατεβάστε την latest έκδοση από τα [GitHub Releases](https://github.com/hass-user/heiman-home/releases)
+1. Κατεβάστε την latest έκδοση από τα [GitHub Releases](https://github.com/heimanhome/heiman_home/releases)
 2. Αποσυμπιέστε τον φάκελο `heiman_home`
 3. Αντιγράψτε τον φάκελο `heiman_home` στον κατάλογο `custom_components` του Home Assistant σας
    ```
@@ -465,9 +465,9 @@ heiman_home/
 <a name="support"></a>
 ## Υποστήριξη
 
-- **GitHub Issues**: [Αναφορά σφαλμάτων ή αίτηση λειτουργιών](https://github.com/hass-user/heiman-home/issues)
+- **GitHub Issues**: [Αναφορά σφαλμάτων ή αίτηση λειτουργιών](https://github.com/heimanhome/heiman_home/issues)
 - **Φόρουμ Κοινότητας Home Assistant**: [Συζήτηση και λήψη βοήθειας](https://community.home-assistant.io/)
-- **Τεκμηρίωση**: [Πλήρης τεκμηρίωση](https://github.com/hass-user/heiman-home/wiki)
+- **Τεκμηρίωση**: [Πλήρης τεκμηρίωση](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 
