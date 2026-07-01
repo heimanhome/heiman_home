@@ -1,0 +1,15 @@
+# Service definitions for Heiman Home integration
+read_device_properties:
+  name: Read device properties
+  description: Read and refresh properties for one or more Heiman devices.
+  fields:
+    device_id:
+      name: Device ID
+      description: >-
+        The Home Assistant device registry ID(s) of the Heiman device(s) to refresh.
+        Can be a single device ID or a list of device IDs.
+      required: true
+      selector:
+        device:
+          filter:
+            - integration: heiman_home

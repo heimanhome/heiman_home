@@ -16,7 +16,6 @@ from heimanconnect import (
     HeimanMqttClient,
     HeimanUser,
 )
-
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
@@ -450,11 +449,11 @@ class HeimanApiClient:
         """Close the client."""
         if self._http_client:
             await self._http_client.close()
-        
+
         # Disconnect MQTT client if connected
         if self._mqtt_client and self._mqtt_client.is_connected:
             await self._mqtt_client.disconnect()
-    
+
     async def _initialize_mqtt_client(
         self,
         user_id: str,
@@ -462,21 +461,21 @@ class HeimanApiClient:
         user_display_name: str | None = None,
     ) -> HeimanMqttClient:
         """Initialize MQTT client if not already initialized.
-        
+
         Args:
             user_id: User ID for MQTT subscription
             devices: Dictionary of devices for child device detection
             user_display_name: User display name for device control payload
-            
+
         Returns:
             HeimanMqttClient instance
         """
         if self._mqtt_client is None or not self._mqtt_client.is_connected:
             access_token = self._get_access_token()
-            
+
             if not access_token:
                 raise HeimanConnectionError("No access token available for MQTT")
-            
+
             self._mqtt_client = HeimanMqttClient(
                 hass=self.hass,
                 access_token=access_token,
@@ -485,13 +484,13 @@ class HeimanApiClient:
                 cloud_client=self._cloud_client,
                 devices=devices,
             )
-            
+
             # Connect to MQTT broker
             await self._mqtt_client.connect()
             _LOGGER.info("MQTT client initialized and connected")
-        
+
         return self._mqtt_client
-    
+
     async def async_get_child_device_manager(
         self,
         user_id: str,
@@ -499,15 +498,15 @@ class HeimanApiClient:
         user_display_name: str | None = None,
     ) -> ChildDeviceManager:
         """Get child device manager instance with initialized MQTT client.
-        
+
         This method ensures the MQTT client is properly initialized before
         returning the child device manager.
-        
+
         Args:
             user_id: User ID for MQTT subscription
             devices: Dictionary of devices for child device detection
             user_display_name: User display name for device control payload
-            
+
         Returns:
             ChildDeviceManager instance with initialized MQTT client
         """
@@ -516,8 +515,8 @@ class HeimanApiClient:
             devices=devices,
             user_display_name=user_display_name,
         )
-        
+
         # Create child device manager with the initialized MQTT client
         self._child_device_manager = ChildDeviceManager(mqtt_client=mqtt_client)
-        
+
         return self._child_device_manager

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
 import json
 import logging
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from heimanconnect import (
@@ -18,7 +18,6 @@ from heimanconnect import (
     HeimanMQTTError,
     HeimanUser,
 )
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_TOKEN
 from homeassistant.core import HomeAssistant
@@ -253,49 +252,49 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
         self, devices: dict[str, HeimanDevice]
     ) -> None:
         """Check for firmware updates for all devices in a batch request.
-        
+
         This method uses the heimanconnect library's batch firmware check API
         to efficiently check multiple devices at once instead of individual requests.
-        
+
         Args:
             devices: Dictionary of device_id to HeimanDevice objects
         """
         if not devices:
             return
-        
+
         try:
             # Get list of device IDs
             device_ids = list(devices.keys())
-            
+
             # Batch request to check which devices have pending firmware upgrades
             firmware_list = await self.api_client.async_get_devices_firmware_list(
                 device_ids=device_ids,
             )
-            
+
             if not firmware_list:
                 _LOGGER.debug("No devices with pending firmware upgrades")
                 return
-            
+
             _LOGGER.info(
                 "Found %d devices with available firmware updates",
                 len(firmware_list),
             )
-            
+
             # Process each device with available update
             for device_info in firmware_list:
                 device_id = device_info.get("deviceId") or device_info.get("id")
                 if not device_id or device_id not in devices:
                     continue
-                
+
                 device = devices[device_id]
-                
+
                 # Extract latest version info from multiple possible locations
                 latest_version = (
                     device_info.get("latestVersion")
                     or device_info.get("newVersion")
                     or device_info.get("targetVersion")
                 )
-                
+
                 # If not found in direct fields, check upgradeTasks
                 if not latest_version:
                     upgrade_tasks = device_info.get("upgradeTasks", [])
@@ -304,12 +303,12 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                         first_task = upgrade_tasks[0]
                         if isinstance(first_task, dict):
                             latest_version = first_task.get("upgradeVersion")
-                
+
                 if latest_version:
                     # Store firmware upgrade info in device for update entity to use
                     if not hasattr(device, "firmware_upgrade_info"):
                         device.firmware_upgrade_info = {}  # type: ignore[attr-defined]
-                    
+
                     device.firmware_upgrade_info = {  # type: ignore[attr-defined]
                         "latest_version": latest_version,
                         "current_version": device.firmware_version,
@@ -318,14 +317,14 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                         or device_info.get("releaseNotes")
                         or device_info.get("changeLog"),
                     }
-                    
+
                     _LOGGER.info(
                         "Firmware update available for %s: %s -> %s",
                         device.device_name,
                         device.firmware_version,
                         latest_version,
                     )
-        
+
         except Exception as err:  # noqa: BLE001
             _LOGGER.debug(
                 "Failed to check firmware updates batch: %s",
@@ -689,14 +688,22 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
             _LOGGER.debug("Extracted properties from event data: %s", actual_properties)
         elif "data" in properties and isinstance(properties["data"], dict):
             actual_properties = properties["data"]
-            _LOGGER.debug("Extracted properties from event data field: %s", actual_properties)
+            _LOGGER.debug(
+                "Extracted properties from event data field: %s", actual_properties
+            )
 
         # Update device properties with special handling
         for prop_name, prop_value in actual_properties.items():
             # Skip non-property fields
-            if prop_name in ["event", "eventType", "deviceId", "messageId", "timestamp"]:
+            if prop_name in [
+                "event",
+                "eventType",
+                "deviceId",
+                "messageId",
+                "timestamp",
+            ]:
                 continue
-                
+
             # Special handling for DeviceINFO object (same as _update_device_property)
             if prop_name == "DeviceINFO" and isinstance(prop_value, dict):
                 self._process_device_info(device, prop_value)

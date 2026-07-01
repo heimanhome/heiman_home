@@ -6,7 +6,6 @@ import logging
 from typing import Any
 
 from heimanconnect import DeviceProperty, HeimanDevice
-
 from homeassistant import config_entries
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant, callback
@@ -14,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ALARM_SOUND_DISPLAY_NAMES, ALARM_SOUND_OPTIONS, DOMAIN, ENTITY_ICONS
+from .const import ALARM_SOUND_DISPLAY_NAMES, DOMAIN, ENTITY_ICONS
 from .coordinator import HeimanDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,21 +68,21 @@ async def async_setup_entry(
 
 def _is_select_property(prop) -> bool:
     """Check if property should be a select entity.
-    
+
     Args:
         prop: Property object
-        
+
     Returns:
         True if property should be a select
     """
     # Must be writable
     if not prop.writable:
         return False
-    
+
     # Check if it's an enum type
     if prop.data_type == "enum":
         return True
-    
+
     # Check property identifier for known select types
     prop_lower = prop.identifier.lower()
     select_keywords = ["mode", "option", "setting", "level", "speed"]
@@ -144,7 +143,7 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
         # Initialize current option from coordinator cache
         self._current_option = None
         self._update_current_option_from_cache()
-    
+
     def _setup_property_options(self, prop: DeviceProperty) -> None:
         """Setup options and value mappings for the property.
 
@@ -158,12 +157,12 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
             prop.data_type,
             prop.value,
         )
-        
+
         # Try to get options from const if it's a known property type
         if self._property_identifier == "AlarmSoundOption":
             # Use display names as options (user-friendly strings)
             self._attr_options = list(ALARM_SOUND_DISPLAY_NAMES.values())
-            
+
             # Setup value_list mapping (display_name -> API_value)
             # API returns numeric values: 0=fast, 1=medium, 2=slow
             self._value_list = {
@@ -181,7 +180,7 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
             # Temperature Unit: Celsius/Fahrenheit
             _LOGGER.info("Setting up TUI (Temperature Unit) select options")
             self._attr_options = ["°C", "°F"]
-            
+
             # Setup value_list mapping (display_name -> API_value)
             self._value_list = {
                 "°C": "0",
@@ -212,40 +211,40 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
                 "away": "armed_away",
                 "night": "armed_night",
             }
-    
+
     def _get_description(self, value) -> str | None:
         """Get description (option text) from value.
-        
+
         Args:
             value: Raw value from API
-            
+
         Returns:
             Display description or None
         """
         if value is None:
             return None
-            
+
         # Try reverse_value_list first (value -> description)
         str_value = str(value)
-        
+
         if str_value in self._reverse_value_list:
             result = self._reverse_value_list[str_value]
             return result
-        
+
         # Fallback: try value_list (description -> value) in case they're the same
         for desc, val in self._value_list.items():
             if str(val) == str_value:
                 return desc
-        
+
         # If no mapping found, return the value itself as string
         return str_value
-    
+
     def _get_value(self, description: str):
         """Get value from description (option text).
-        
+
         Args:
             description: Option description
-            
+
         Returns:
             Raw value for API
         """
@@ -253,13 +252,13 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
         if description in self._value_list:
             result = self._value_list[description]
             return result
-        
+
         # If not found, return the description itself
         return description
-    
+
     def _apply_icon(self, property_identifier: str, prop) -> None:
         """Apply icon based on property type.
-        
+
         Args:
             property_identifier: Property identifier
             prop: Property object
@@ -270,16 +269,16 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
         if property_identifier in icons_config:
             self._attr_icon = icons_config[property_identifier]
             return
-        
+
         # If not found, try lowercase match
         prop_lower = property_identifier.lower()
         if prop_lower in icons_config:
             self._attr_icon = icons_config[prop_lower]
             return
-        
+
         # Default icon
         self._attr_icon = "mdi:volume-high"
-    
+
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
@@ -291,35 +290,35 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
             return False
 
         return device.online is True
-    
+
     @property
     def current_option(self) -> str | None:
         """Return the current selected option.
-        
+
         This should only return information from memory (not do I/O).
         """
         return self._current_option
-    
+
     def _update_current_option_from_cache(self) -> bool:
         """Update current option from coordinator cache (synchronous).
-        
+
         Returns True if state was updated from cache, False if cache miss or no change.
         """
         device_id = self._device.device_id
         property_id = self._property_identifier
-        
+
         if self.coordinator and hasattr(self.coordinator, "get_device_property"):
             cached_value = self.coordinator.get_device_property(device_id, property_id)
-            
+
             if cached_value is not None:
                 # Convert value to description (option text)
                 old_option = self._current_option
                 self._current_option = self._get_description(value=cached_value)
-                
+
                 if self._current_option != old_option:
                     return True
         return False
-    
+
     async def async_select_option(self, option: str) -> None:
         """Change the selected option.
 
@@ -356,7 +355,7 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
         # Update current option immediately for better UX
         self._current_option = option
         self.async_write_ha_state()
-    
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator (MQTT push).
@@ -364,9 +363,6 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
         This is called when the coordinator has new data (e.g., from MQTT).
         Updates entity state immediately without waiting for next poll.
         """
-        device_id = self._device.device_id
-        property_id = self._property_identifier
-
         # Update current option from cache and always write state
         # This ensures HA state is synchronized even if value hasn't changed
         self._update_current_option_from_cache()
@@ -378,7 +374,7 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attributes = {}
-        
+
         device = self.coordinator.get_device(self._device.device_id)
         if device:
             prop = device.properties.get(self._property_identifier)
@@ -388,5 +384,5 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
                 if prop.data_type:
                     attributes["data_type"] = prop.data_type
                 attributes["raw_value"] = prop.value
-        
+
         return attributes

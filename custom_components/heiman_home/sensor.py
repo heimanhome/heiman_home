@@ -7,7 +7,6 @@ from typing import Any
 
 from heimanconnect import DeviceProperty, HeimanDevice
 from heimanconnect.utils import convert_temperature
-
 from homeassistant import config_entries
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -308,7 +307,7 @@ class HeimanSensorEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SensorE
     @property
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement based on TUI.
-        
+
         For temperature sensors, display unit based on TUI value:
         - TUI = 0: Celsius (°C)
         - TUI = 1: Fahrenheit (°F)
@@ -327,7 +326,7 @@ class HeimanSensorEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SensorE
                         pass
             # Default to Celsius if TUI not available
             return "°C"
-        
+
         # For other sensors, use the configured unit
         return getattr(self, "_attr_native_unit_of_measurement", None)
 
@@ -361,7 +360,7 @@ class HeimanSensorEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SensorE
             # Get TUI value from device properties
             tui_prop = device.properties.get("TUI")
             tui_value = tui_prop.value if tui_prop else None
-            
+
             # Convert temperature based on TUI unit
             # Note: Device always reports in Celsius, convert to Fahrenheit if TUI=1
             if value is not None and isinstance(value, (int, float)):

@@ -1,11 +1,10 @@
 """Config flow to configure Heiman."""
 
-from collections.abc import Mapping
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.components.application_credentials import (
     ClientCredential,
     async_import_client_credential,
@@ -63,7 +62,7 @@ class HeimanConfigFlow(AbstractOAuth2FlowHandler, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Skip implementation selection and use default.
-        
+
         This automatically uses the registered OAuth credentials without
         showing the selection form to the user.
         """
@@ -82,7 +81,7 @@ class HeimanConfigFlow(AbstractOAuth2FlowHandler, domain=DOMAIN):
                 self._credentials_registered = True
             except Exception as err:  # noqa: BLE001
                 _LOGGER.warning("Failed to register default credentials: %s", err)
-        
+
         # Call parent method with user_input to trigger auto-selection
         # The parent class already handles single implementation case
         return await super().async_step_pick_implementation(user_input)
@@ -140,7 +139,9 @@ class HeimanConfigFlow(AbstractOAuth2FlowHandler, domain=DOMAIN):
                 )
 
             # Use home_id as unique_id to allow multiple homes per user
-            await self.async_set_unique_id(f"{self._auth_info.user_info.user_id}_{selected_home_id}")
+            await self.async_set_unique_id(
+                f"{self._auth_info.user_info.user_id}_{selected_home_id}"
+            )
 
             if self.source != SOURCE_REAUTH:
                 self._abort_if_unique_id_configured()
@@ -157,7 +158,11 @@ class HeimanConfigFlow(AbstractOAuth2FlowHandler, domain=DOMAIN):
                     (h for h in self._auth_info.homes if h.home_id == selected_home_id),
                     None,
                 )
-                home_name = getattr(selected_home, "home_name", "Home") if selected_home else "Home"
+                home_name = (
+                    getattr(selected_home, "home_name", "Home")
+                    if selected_home
+                    else "Home"
+                )
                 user_info = self._auth_info.user_info
                 user_name = (
                     getattr(user_info, "nick_name", None)
@@ -175,15 +180,14 @@ class HeimanConfigFlow(AbstractOAuth2FlowHandler, domain=DOMAIN):
             entry = self._get_reauth_entry()
             if entry is None:
                 return self.async_abort(reason="reauth_entry_not_found")
-            
+
             # Check if user_id matches (for security)
             if entry.data.get(CONF_USER_ID) != self._auth_info.user_info.user_id:
                 return self.async_abort(reason="reauth_user_mismatch")
-            
+
             # Update with new unique_id format if needed
-            old_unique_id = entry.data.get(CONF_HOME_ID)
             new_unique_id = f"{self._auth_info.user_info.user_id}_{selected_home_id}"
-            
+
             return self.async_update_reload_and_abort(
                 entry,
                 data_updates={

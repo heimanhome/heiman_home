@@ -1,12 +1,10 @@
 """Application credentials platform for Heiman."""
 
-from json import JSONDecodeError
 import logging
+from json import JSONDecodeError
 from typing import NoReturn, cast
 
 from aiohttp import BasicAuth, ClientError, ClientResponse, RequestInfo
-from yarl import URL
-
 from homeassistant.components.application_credentials import (
     AuthImplementation,
     AuthorizationServer,
@@ -19,6 +17,7 @@ from homeassistant.exceptions import (
     OAuth2TokenRequestTransientError,
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from yarl import URL
 
 from .const import OAUTH_AUTHORIZE_URL, OAUTH_TOKEN_URL
 
@@ -33,13 +32,15 @@ async def async_get_auth_implementation(
     hass: HomeAssistant, auth_domain: str, credential: ClientCredential
 ) -> AuthImplementation:
     """Return auth implementation.
-    
+
     If no credentials are provided, use default credentials for Heiman Home.
     """
     # Use provided credentials or fall back to defaults
     client_id = credential.client_id if credential.client_id else DEFAULT_CLIENT_ID
-    client_secret = credential.client_secret if credential.client_secret else DEFAULT_CLIENT_SECRET
-    
+    client_secret = (
+        credential.client_secret if credential.client_secret else DEFAULT_CLIENT_SECRET
+    )
+
     return HeimanOAuth2Implementation(
         hass,
         auth_domain,
@@ -79,7 +80,7 @@ class HeimanOAuth2Implementation(AuthImplementation):
             if resp.status >= 400:
                 try:
                     error_response = await resp.json()
-                except ClientError, JSONDecodeError:
+                except (ClientError, JSONDecodeError):
                     error_response = {}
                 error_code = error_response.get("error", "unknown")
                 error_description = error_response.get(
@@ -223,7 +224,7 @@ class HeimanOAuth2Implementation(AuthImplementation):
         try:
             response_data = await resp.json()
             return cast(dict, response_data)
-        except ClientError, JSONDecodeError:
+        except (ClientError, JSONDecodeError):
             _LOGGER.exception(
                 "Token request returned non-JSON response (status %s, content_type='%s'): %s",
                 resp.status,

@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 
 from heimanconnect import DeviceManagement
-
 from homeassistant.components.application_credentials import (
     ClientCredential,
     async_import_client_credential,
@@ -20,13 +19,14 @@ from homeassistant.exceptions import (
     OAuth2TokenRequestReauthError,
     ServiceValidationError,
 )
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.config_entry_oauth2_flow import (
     ImplementationUnavailableError,
     OAuth2Session,
     async_get_config_entry_implementation,
 )
+from homeassistant.helpers.typing import ConfigType
 
 from .api import HeimanApiClient
 from .const import (
@@ -50,6 +50,8 @@ from .coordinator import HeimanDataUpdateCoordinator
 
 type HeimanConfigEntry = ConfigEntry[HeimanDataUpdateCoordinator]
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
 _LOGGER = logging.getLogger(__name__)
 
 # Default OAuth credentials for Heiman Home
@@ -59,7 +61,7 @@ DEFAULT_CLIENT_SECRET = "htJXYn5TyM3zZ7ji"
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up Heiman component.
-    
+
     This automatically registers the default OAuth credentials so users
     don't need to manually configure them in the UI.
     """

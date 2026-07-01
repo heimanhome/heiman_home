@@ -6,7 +6,6 @@ import logging
 from typing import Any
 
 from heimanconnect import DeviceProperty, HeimanDevice
-
 from homeassistant import config_entries
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.core import HomeAssistant
@@ -157,7 +156,9 @@ class HeimanNumberEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], NumberE
                 self._attr_native_max_value = 1000.0
                 self._attr_native_step = 1.0
 
-    def _apply_icon(self, property_identifier: str, prop: DeviceProperty | None) -> None:
+    def _apply_icon(
+        self, property_identifier: str, prop: DeviceProperty | None
+    ) -> None:
         """Apply icon based on property type.
 
         Args:

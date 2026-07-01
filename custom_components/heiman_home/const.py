@@ -44,7 +44,15 @@ AREA_NAME_RULE_HOME = "home"
 AREA_NAME_RULE_HOME_ROOM = "home_room"
 
 # Platform Definitions
-PLATFORMS = ["sensor", "switch", "button", "select", "binary_sensor", "update", "number"]
+PLATFORMS = [
+    "sensor",
+    "switch",
+    "button",
+    "select",
+    "binary_sensor",
+    "update",
+    "number",
+]
 
 # Binary Sensor Device Class Mapping
 BINARY_SENSOR_DEVICE_CLASS_MAP = {

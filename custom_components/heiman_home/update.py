@@ -6,11 +6,7 @@ import asyncio
 import logging
 from typing import Any
 
-# Simple version comparison (assumes semantic versioning)
-from packaging import version
-
 from heimanconnect import HeimanDevice
-
 from homeassistant import config_entries
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.core import HomeAssistant
@@ -18,10 +14,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+# Simple version comparison (assumes semantic versioning)
+from packaging import version
+
 from .const import DOMAIN
 from .coordinator import HeimanDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -57,7 +57,9 @@ async def async_setup_entry(
     _create_update_entities_for_devices()
 
     # Listen for coordinator updates to add new devices dynamically
-    entry.async_on_unload(coordinator.async_add_listener(_create_update_entities_for_devices))
+    entry.async_on_unload(
+        coordinator.async_add_listener(_create_update_entities_for_devices)
+    )
 
 
 class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateEntity):
@@ -118,10 +120,10 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         self._attr_in_progress = False
         self._attr_update_percentage = None
         self._attr_auto_update = False
-        
+
         # Cache for firmware upgrade info
         self._firmware_upgrade_info: dict[str, Any] | None = None
-    
+
     def _extract_firmware_version(self, device: HeimanDevice) -> str | None:
         """Extract firmware version from device using multiple strategies.
 
@@ -147,13 +149,15 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
 
         # Strategy 3: Get from firmware_info.version
         if hasattr(device, "firmware_info") and device.firmware_info:
-            if isinstance(device.firmware_info, dict) and device.firmware_info.get("version"):
+            if isinstance(device.firmware_info, dict) and device.firmware_info.get(
+                "version"
+            ):
                 sw_version = device.firmware_info.get("version")
                 return sw_version
 
         # No firmware version found
         return sw_version
-    
+
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
@@ -165,7 +169,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
             return False
 
         return device.online is True
-    
+
     @property
     def installed_version(self) -> str | None:
         """Return the current installed firmware version."""
@@ -179,7 +183,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
             return None
 
         return self._extract_firmware_version(device)
-    
+
     @property
     def latest_version(self) -> str | None:
         """Return the latest available firmware version.
@@ -193,7 +197,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
 
         # Fallback to installed version (indicates no update available)
         return self.installed_version
-    
+
     def _update_from_cache(self) -> bool:
         """Update entity state from coordinator cache (synchronous).
 
@@ -214,9 +218,9 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
             self._device.device_name,
             installed_version,
             self._attr_installed_version,
-            getattr(device, 'firmware_version', 'N/A'),
+            getattr(device, "firmware_version", "N/A"),
         )
-        
+
         if installed_version:
             # Only update if there's no better version
             if (
@@ -226,27 +230,31 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                 self._attr_installed_version = installed_version
 
         # Check if coordinator has firmware upgrade info from batch check
-        has_upgrade_info = hasattr(device, "firmware_upgrade_info") and device.firmware_upgrade_info
+        has_upgrade_info = (
+            hasattr(device, "firmware_upgrade_info") and device.firmware_upgrade_info
+        )
         _LOGGER.info(
             "Update entity %s: has_firmware_upgrade_info=%s",
             self._device.device_name,
             has_upgrade_info,
         )
-        
+
         if has_upgrade_info:
             firmware_info = device.firmware_upgrade_info
             latest_version = firmware_info.get("latest_version")
-            
+
             _LOGGER.info(
                 "Update entity %s: firmware_upgrade_info=%s, latest_version=%s",
                 self._device.device_name,
                 firmware_info,
                 latest_version,
             )
-            
+
             if latest_version and self._attr_installed_version:
                 # Compare versions
-                is_newer = self._version_is_newer(latest_version, self._attr_installed_version)
+                is_newer = self._version_is_newer(
+                    latest_version, self._attr_installed_version
+                )
                 _LOGGER.info(
                     "Update entity %s: version comparison result: %s > %s = %s",
                     self._device.device_name,
@@ -254,7 +262,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                     self._attr_installed_version,
                     is_newer,
                 )
-                
+
                 if is_newer:
                     self._attr_latest_version = latest_version
                     self._attr_release_summary = firmware_info.get("description")
@@ -287,7 +295,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         )
 
         return True
-    
+
     def _version_is_newer(self, latest_version: str, installed_version: str) -> bool:
         """Return True if latest_version is newer than installed_version."""
         try:
@@ -304,13 +312,13 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                 installed_version,
             )
             return False
-    
+
     @property
     def release_summary(self) -> str | None:
         """Return summary of the latest release."""
         # TODO: Implement when API supports firmware update information
         return None
-    
+
     @property
     def in_progress(self) -> bool:
         """Return whether an update is currently in progress."""
@@ -319,9 +327,13 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         if device:
             update_prop = device.properties.get("firmware_update_status")
             if update_prop and update_prop.value:
-                return str(update_prop.value).lower() in ["updating", "downloading", "installing"]
+                return str(update_prop.value).lower() in [
+                    "updating",
+                    "downloading",
+                    "installing",
+                ]
         return False
-    
+
     async def async_update(self) -> None:
         """Update the entity state from coordinator cache and check for firmware updates.
 
@@ -329,45 +341,47 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         Note: HA automatically calls async_write_ha_state() after async_update().
         """
         self._update_from_cache()
-        
+
         # Check for firmware updates if we have an installed version
         if self._attr_installed_version:
             await self._check_firmware_update()
-    
+
     async def _check_firmware_update(self) -> None:
         """Check for available firmware updates from Heiman API."""
         try:
             # Get firmware info from API
-            firmware_info = await self.coordinator.api_client.async_get_device_firmware_info(
-                device_id=self._device.device_id,
-                product_id=self._device.product_id,
-                device_name=self._device.device_name,
-                current_version=self._attr_installed_version,
+            firmware_info = (
+                await self.coordinator.api_client.async_get_device_firmware_info(
+                    device_id=self._device.device_id,
+                    product_id=self._device.product_id,
+                    device_name=self._device.device_name,
+                    current_version=self._attr_installed_version,
+                )
             )
-            
+
             if not firmware_info:
                 _LOGGER.debug(
                     "No firmware info returned for device %s",
                     self._device.device_id,
                 )
                 return
-            
+
             # Store firmware upgrade info for later use
             self._firmware_upgrade_info = firmware_info
-            
+
             # Extract latest version from firmware info
             latest_version = self._extract_latest_version(firmware_info)
-            
+
             if latest_version and self._attr_installed_version:
                 # Compare versions
                 if self._version_is_newer(latest_version, self._attr_installed_version):
                     self._attr_latest_version = latest_version
-                    
+
                     # Extract release notes if available
                     self._attr_release_summary = self._extract_release_notes(
                         firmware_info
                     )
-                    
+
                     _LOGGER.info(
                         "Firmware update available for %s: %s -> %s",
                         self._device.device_name,
@@ -378,7 +392,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                     # No update available
                     self._attr_latest_version = self._attr_installed_version
                     self._attr_release_summary = None
-                    
+
         except Exception as err:  # noqa: BLE001
             _LOGGER.debug(
                 "Failed to check firmware update for %s: %s",
@@ -386,13 +400,13 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                 err,
             )
             # Don't raise exception - just log and continue with cached values
-    
+
     def _extract_latest_version(self, firmware_info: dict[str, Any]) -> str | None:
         """Extract latest firmware version from firmware info response.
-        
+
         Args:
             firmware_info: Firmware information from API
-            
+
         Returns:
             Latest firmware version string or None
         """
@@ -400,21 +414,21 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         for key in ["latestVersion", "newVersion", "version", "targetVersion"]:
             if key in firmware_info and firmware_info[key]:
                 return str(firmware_info[key])
-        
+
         # Check in nested structure
         if "firmware" in firmware_info and isinstance(firmware_info["firmware"], dict):
             for key in ["version", "latestVersion", "newVersion"]:
                 if key in firmware_info["firmware"] and firmware_info["firmware"][key]:
                     return str(firmware_info["firmware"][key])
-        
+
         return None
-    
+
     def _extract_release_notes(self, firmware_info: dict[str, Any]) -> str | None:
         """Extract release notes/description from firmware info.
-        
+
         Args:
             firmware_info: Firmware information from API
-            
+
         Returns:
             Release notes string or None
         """
@@ -428,15 +442,15 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         ]:
             if key in firmware_info and firmware_info[key]:
                 return str(firmware_info[key])
-        
+
         # Check in nested structure
         if "firmware" in firmware_info and isinstance(firmware_info["firmware"], dict):
             for key in ["description", "releaseNotes", "changeLog"]:
                 if key in firmware_info["firmware"] and firmware_info["firmware"][key]:
                     return str(firmware_info["firmware"][key])
-        
+
         return None
-    
+
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator (MQTT push).
 
@@ -460,14 +474,14 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                 "State written for %s, notifying HA",
                 self._device.device_name,
             )
-    
+
     async def async_install(
         self,
         version: str | None = None,
         backup: bool = False,
     ) -> None:
         """Install a firmware update.
-        
+
         Args:
             version: Specific version to install (optional)
             backup: Whether to create backup before update (not supported)
@@ -477,11 +491,11 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
             self._device.device_id,
             version or self._attr_latest_version,
         )
-        
+
         self._attr_in_progress = True
         self._attr_update_percentage = 0
         self.async_write_ha_state()
-        
+
         try:
             # Confirm firmware upgrade via API
             result = await self.coordinator.api_client.async_confirm_firmware_upgrade(
@@ -490,20 +504,20 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                 device_name=self._device.device_name,
                 current_version=self._attr_installed_version,
             )
-            
+
             _LOGGER.info(
                 "Firmware update initiated for device %s: %s",
                 self._device.device_id,
                 result,
             )
-            
+
             # Update progress
             self._attr_update_percentage = 10
             self.async_write_ha_state()
-            
+
             # Monitor update progress
             await self._monitor_update_progress()
-            
+
         except Exception as err:  # noqa: BLE001
             _LOGGER.error(
                 "Failed to install firmware update for %s: %s",
@@ -514,43 +528,43 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
             self._attr_update_percentage = None
             self.async_write_ha_state()
             raise
-    
+
     async def _monitor_update_progress(self) -> None:
         """Monitor firmware update progress."""
         max_attempts = 60  # Monitor for up to 10 minutes (10s intervals)
         attempt = 0
-        
+
         while attempt < max_attempts:
             attempt += 1
             await asyncio.sleep(10)
-            
+
             try:
                 # Check upgrade history/progress
                 history = await self.coordinator.api_client.async_get_firmware_upgrade_history(
                     device_id=self._device.device_id,
                 )
-                
+
                 _LOGGER.info(
                     "Upgrade history for %s: %s",
                     self._device.device_id,
                     history,
                 )
-                
+
                 if history:
                     progress = self._extract_update_progress(history)
                     status = self._extract_update_status(history)
-                    
+
                     _LOGGER.info(
                         "Upgrade progress for %s: progress=%s, status=%s",
                         self._device.device_id,
                         progress,
                         status,
                     )
-                    
+
                     if progress is not None:
                         self._attr_update_percentage = progress
                         self.async_write_ha_state()
-                        
+
                         # If update completed or failed
                         status = self._extract_update_status(history)
                         if status == "completed":
@@ -560,7 +574,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                             )
                             self._attr_in_progress = False
                             self._attr_update_percentage = None
-                            
+
                             # Refresh installed version
                             device = self.coordinator.get_device(self._device.device_id)
                             if device:
@@ -568,7 +582,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                                 if new_version:
                                     self._attr_installed_version = new_version
                                     self._attr_latest_version = new_version
-                            
+
                             self.async_write_ha_state()
                             return
                         elif status in ["failed", "error"]:
@@ -580,13 +594,13 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                             self._attr_update_percentage = None
                             self.async_write_ha_state()
                             return
-            
+
             except Exception as err:  # noqa: BLE001
                 _LOGGER.debug(
                     "Error checking update progress: %s",
                     err,
                 )
-        
+
         # Timeout
         _LOGGER.warning(
             "Firmware update monitoring timed out for %s",
@@ -595,13 +609,13 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         self._attr_in_progress = False
         self._attr_update_percentage = None
         self.async_write_ha_state()
-    
+
     def _extract_update_progress(self, history: dict[str, Any]) -> int | None:
         """Extract update progress percentage from history.
-        
+
         Args:
             history: Upgrade history data
-            
+
         Returns:
             Progress percentage (0-100) or None
         """
@@ -612,7 +626,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                     return int(history[key])
                 except (ValueError, TypeError):
                     pass
-        
+
         # Check in nested structure
         if "task" in history and isinstance(history["task"], dict):
             for key in ["progress", "percentage"]:
@@ -621,15 +635,15 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                         return int(history["task"][key])
                     except (ValueError, TypeError):
                         pass
-        
+
         return None
-    
+
     def _extract_update_status(self, history: dict[str, Any]) -> str | None:
         """Extract update status from history.
-        
+
         Args:
             history: Upgrade history data
-            
+
         Returns:
             Status string or None
         """
@@ -637,11 +651,11 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         for key in ["status", "state", "upgradeStatus"]:
             if key in history:
                 return str(history[key]).lower()
-        
+
         # Check in nested structure
         if "task" in history and isinstance(history["task"], dict):
             for key in ["status", "state"]:
                 if key in history["task"]:
                     return str(history["task"][key]).lower()
-        
+
         return None
