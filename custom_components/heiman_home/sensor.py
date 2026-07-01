@@ -230,7 +230,8 @@ class HeimanSensorEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SensorE
 
         if config and matched_key:
             device_class_value = config.get("device_class")
-            # For temperature sensors, don't set device_class to avoid HA's automatic unit conversion
+            # For temperature sensors, don't set device_class
+            # to avoid HA's automatic unit conversion
             # We handle unit display manually based on TUI setting
             if self._property_identifier != "CurrentTemperature":
                 if device_class_value:

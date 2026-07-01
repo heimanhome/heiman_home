@@ -214,7 +214,8 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         # Get installed version
         installed_version = self._extract_firmware_version(device)
         _LOGGER.info(
-            "Update entity %s: installed_version=%s, attr_installed_version=%s, device.firmware_version=%s",
+            "Update entity %s: installed_version=%s,"
+            " attr_installed_version=%s, device.firmware_version=%s",
             self._device.device_name,
             installed_version,
             self._attr_installed_version,
@@ -477,8 +478,8 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
 
     async def async_install(
         self,
-        version: str | None = None,
-        backup: bool = False,
+        target_version: str | None = None,
+        backup: bool = False,  # noqa: ARG002
     ) -> None:
         """Install a firmware update.
 
@@ -551,49 +552,9 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                 )
 
                 if history:
-                    progress = self._extract_update_progress(history)
-                    status = self._extract_update_status(history)
-
-                    _LOGGER.info(
-                        "Upgrade progress for %s: progress=%s, status=%s",
-                        self._device.device_id,
-                        progress,
-                        status,
-                    )
-
-                    if progress is not None:
-                        self._attr_update_percentage = progress
-                        self.async_write_ha_state()
-
-                        # If update completed or failed
-                        status = self._extract_update_status(history)
-                        if status == "completed":
-                            _LOGGER.info(
-                                "Firmware update completed for %s",
-                                self._device.device_id,
-                            )
-                            self._attr_in_progress = False
-                            self._attr_update_percentage = None
-
-                            # Refresh installed version
-                            device = self.coordinator.get_device(self._device.device_id)
-                            if device:
-                                new_version = self._extract_firmware_version(device)
-                                if new_version:
-                                    self._attr_installed_version = new_version
-                                    self._attr_latest_version = new_version
-
-                            self.async_write_ha_state()
-                            return
-                        elif status in ["failed", "error"]:
-                            _LOGGER.error(
-                                "Firmware update failed for %s",
-                                self._device.device_id,
-                            )
-                            self._attr_in_progress = False
-                            self._attr_update_percentage = None
-                            self.async_write_ha_state()
-                            return
+                    completed = self._handle_upgrade_history(history)
+                    if completed:
+                        return
 
             except Exception as err:  # noqa: BLE001
                 _LOGGER.debug(
@@ -609,6 +570,59 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         self._attr_in_progress = False
         self._attr_update_percentage = None
         self.async_write_ha_state()
+
+    def _handle_upgrade_history(self, history: dict[str, Any]) -> bool:
+        """Process upgrade history and update entity state.
+
+        Returns:
+            True if update completed or failed, False otherwise.
+        """
+        progress = self._extract_update_progress(history)
+        status = self._extract_update_status(history)
+
+        _LOGGER.info(
+            "Upgrade progress for %s: progress=%s, status=%s",
+            self._device.device_id,
+            progress,
+            status,
+        )
+
+        if progress is not None:
+            self._attr_update_percentage = progress
+            self.async_write_ha_state()
+
+            # If update completed or failed
+            status = self._extract_update_status(history)
+            if status == "completed":
+                _LOGGER.info(
+                    "Firmware update completed for %s",
+                    self._device.device_id,
+                )
+                self._attr_in_progress = False
+                self._attr_update_percentage = None
+
+                # Refresh installed version
+                device = self.coordinator.get_device(self._device.device_id)
+                if device:
+                    new_version = self._extract_firmware_version(device)
+                    if new_version:
+                        self._attr_installed_version = new_version
+                        self._attr_latest_version = new_version
+
+                self.async_write_ha_state()
+                return True
+
+            if status in ["failed", "error"]:
+                _LOGGER.error(
+                    "Firmware update failed for %s",
+                    self._device.device_id,
+                )
+                self._attr_in_progress = False
+                self._attr_update_percentage = None
+                self.async_write_ha_state()
+                return True
+
+        return False
 
     def _extract_update_progress(self, history: dict[str, Any]) -> int | None:
         """Extract update progress percentage from history.

@@ -7,7 +7,11 @@ firmware_response = {
     "result": [
         {
             "id": "1972646416676724736",
-            "photoUrl": "https://api.heiman.cn/api-saas/file/870bb4798ce7ad17086775195e260e4c.jpg?accessKey=c22d26782ab650bdca89db83d32ac41e",
+            "photoUrl": (
+                "https://api.heiman.cn/api-saas/file/"
+                "870bb4798ce7ad17086775195e260e4c.jpg"
+                "?accessKey=c22d26782ab650bdca89db83d32ac41e"
+            ),
             "name": "405548f0f9ac",
             "deviceName": "Smart Gateway",
             "productName": "无线级联网关WS3GW-R（868MHz）",

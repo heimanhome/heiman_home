@@ -209,13 +209,8 @@ class HeimanBinarySensorEntity(
             return prop.value.lower() in alarm_states
 
         # Handle numeric values (0/1)
+        # 0 = normal (False), non-zero = alarm (True)
         if isinstance(prop.value, (int, float)):
-            # For UnderVoltError: 0 = normal (False), non-zero = alarm (True)
-            if (
-                "volt" in self._property_identifier.lower()
-                or "error" in self._property_identifier.lower()
-            ):
-                return prop.value != 0
             return prop.value != 0
 
         return None

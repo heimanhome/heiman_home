@@ -156,8 +156,8 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
         except Exception as err:
             _LOGGER.error("Unexpected error during data update: %s", err)
             raise UpdateFailed(f"Error fetching Heiman data: {err}") from err
-        else:
-            return self.data
+
+        return self.data
 
     async def _fetch_user_and_home_info(self) -> None:
         """Fetch user and home information on first update."""
@@ -389,8 +389,8 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                         err,
                     )
                     return device_id, None
-                else:
-                    return device_id, device_detail
+
+                return device_id, device_detail
 
         # Fetch all device details concurrently
         results = await asyncio.gather(
@@ -674,7 +674,8 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
 
         Args:
             device_id: Device ID that sent the update
-             properties: Dictionary of property name to value, or event data containing 'properties' or 'data' key
+            properties: Dictionary of property name to value,
+                or event data containing 'properties' or 'data' key
         """
         # Find device in coordinator data
         device = self.data.devices.get(device_id)
@@ -806,7 +807,8 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                         # Property doesn't exist in initial device properties
                         # Log it but don't create new entity to avoid dynamic entity creation
                         _LOGGER.debug(
-                            "Read properties returned new property %s for device %s, skipping entity creation",
+                            "Read properties returned new property %s"
+                            " for device %s, skipping entity creation",
                             prop_name,
                             device_id,
                         )

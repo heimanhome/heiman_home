@@ -1,15 +1,15 @@
 {
   "domain": "heiman_home",
   "name": "Heiman Home",
-  "version": "1.0.0",
   "codeowners": ["@heimanhome"],
   "config_flow": true,
   "dependencies": ["application_credentials"],
   "documentation": "https://github.com/heimanhome/heiman_home#readme",
-  "issue_tracker": "https://github.com/heimanhome/heiman_home/issues",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/heimanhome/heiman_home/issues",
   "loggers": ["heimanconnect"],
   "quality_scale": "bronze",
-  "requirements": ["heiman-connect==1.0.19"]
+  "requirements": ["heiman-connect==1.0.19"],
+  "version": "1.0.0"
 }

@@ -136,9 +136,9 @@ class HeimanApiClient:
         except Exception as err:
             _LOGGER.exception("Unexpected error getting user info")
             raise HeimanConnectionError(f"Failed to get user info: {err}") from err
-        else:
-            _LOGGER.debug("Retrieved user info: %s", user.email)
-            return user
+
+        _LOGGER.debug("Retrieved user info: %s", user.email)
+        return user
 
     async def async_get_homes(self) -> list[HeimanHome]:
         """Get list of homes for current user.
@@ -164,9 +164,9 @@ class HeimanApiClient:
         except Exception as err:
             _LOGGER.exception("Unexpected error getting homes")
             raise HeimanConnectionError(f"Failed to get homes: {err}") from err
-        else:
-            _LOGGER.debug("Retrieved %d homes", len(homes))
-            return homes
+
+        _LOGGER.debug("Retrieved %d homes", len(homes))
+        return homes
 
     async def async_get_devices(self, home_id: str) -> dict[str, HeimanDevice]:
         """Get list of devices in specified home.
@@ -197,9 +197,9 @@ class HeimanApiClient:
         except Exception as err:
             _LOGGER.exception("Unexpected error getting devices")
             raise HeimanConnectionError(f"Failed to get devices: {err}") from err
-        else:
-            _LOGGER.debug("Retrieved %d devices", len(devices))
-            return devices
+
+        _LOGGER.debug("Retrieved %d devices", len(devices))
+        return devices
 
     async def async_get_device_properties(self, device_id: str) -> dict[str, Any]:
         """Get current properties of a device.
@@ -232,11 +232,9 @@ class HeimanApiClient:
             raise HeimanConnectionError(
                 f"Failed to get device properties: {err}"
             ) from err
-        else:
-            _LOGGER.debug(
-                "Retrieved properties for device %s: %s", device_id, properties
-            )
-            return properties
+
+        _LOGGER.debug("Retrieved properties for device %s: %s", device_id, properties)
+        return properties
 
     async def async_control_device(
         self,
@@ -276,14 +274,14 @@ class HeimanApiClient:
         except Exception as err:
             _LOGGER.exception("Unexpected error controlling device")
             raise HeimanConnectionError(f"Failed to control device: {err}") from err
-        else:
-            _LOGGER.debug(
-                "Successfully controlled device %s: %s=%s",
-                device_id,
-                property_identifier,
-                value,
-            )
-            return result
+
+        _LOGGER.debug(
+            "Successfully controlled device %s: %s=%s",
+            device_id,
+            property_identifier,
+            value,
+        )
+        return result
 
     async def async_get_device_detail(self, device_id: str) -> dict[str, Any] | None:
         """Get detailed device information.
