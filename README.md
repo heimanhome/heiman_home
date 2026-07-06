@@ -183,3 +183,8 @@ Please keep pull requests focused and describe clearly what has been changed.
 
 ## Support:
 Email: support@heimanhome.com
+
+
+### Web
+Looking for manual?
+[Web support](https://support.heimanhome.com/)
