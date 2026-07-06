@@ -98,6 +98,13 @@ The integration provides secure OAuth2 authentication, automatic device discover
 
 ---
 
+
+## Documentation 
+[Heiman Home – How to Connect Heiman Home Integration](https://support.heimanhome.com/faq/?type=detail&id=1)
+
+---
+
+
 ## Home Assistant Support
 
 Compatible with:
@@ -128,11 +135,64 @@ More features will continue to be added through future updates.
 
 ---
 
-## Documentation
-https://leo2442926161.github.io/heiman-docs/
+## How to Ask Questions
 
+If you have questions, feature requests, or need help with setup, please open a GitHub Issue.
+
+Before opening an issue, please include as much information as possible:
+
+- Home Assistant version
+- Heiman Home integration version
+- Installation method, for example HACS or manual installation
+- Device model
+- Problem description
+- Error logs, if available
+- Screenshots, if helpful
+
+Please avoid sharing sensitive information such as passwords, tokens, or account credentials.
+
+GitHub Issues:
+https://github.com/heimanhome/heiman_home/issues
 
 
 ---
-## License
-Apache 2.0
+
+## How to Contribute
+
+Contributions are welcome.
+
+You can help this project by:
+
+- Reporting bugs
+- Suggesting new features
+- Improving documentation
+- Testing new versions
+- Submitting pull requests
+- Sharing feedback from real Home Assistant usage
+
+### Contributing Code
+
+1. Fork this repository
+2. Create a new branch
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. Make your changes
+4. Test the integration locally
+5. Commit your changes
+6. git commit -m "Add your feature description"
+7. Push your branch
+```bash
+git push origin feature/your-feature-name
+```
+
+8. Open a Pull Request
+
+Please keep pull requests focused and describe clearly what has been changed.
+
+---
+
+
+## Support:
+Email: support@heimanhome.com
