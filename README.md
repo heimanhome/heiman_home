@@ -46,7 +46,7 @@ The integration provides secure OAuth2 authentication, automatic device discover
 
 ### Safety Devices
 - Smoke Alarms
-- Heat Alarms (under development)
+- Heat Alarms (Under Development)
 - Carbon Monoxide Alarms (Planned)
 
 
@@ -55,7 +55,7 @@ The integration provides secure OAuth2 authentication, automatic device discover
 - Water Leak Sensors
 
 ### Gateways
-- Smart RF Hub(SubG RF radio only)
+- Smart RF Hub (**SubG RF radio only**)
 - Smart Zigbee Gatewat(Planned)
 
 
@@ -138,8 +138,8 @@ Before opening an issue, please include as much information as possible:
 
 Please avoid sharing sensitive information such as passwords, tokens, or account credentials.
 
-GitHub Issues:
-https://github.com/heimanhome/heiman_home/issues
+
+[GitHub Issues Page](https://github.com/heimanhome/heiman_home/issues)
 
 
 ---
