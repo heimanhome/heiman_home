@@ -61,19 +61,6 @@ The integration provides secure OAuth2 authentication, automatic device discover
 
 ---
 
-## Supported Entities
-
-| Entity Type | Supported |
-|------------|------------|
-| Sensor | ✅ |
-| Binary Sensor | ✅ |
-| Switch | ✅ |
-| Button | ✅ |
-| Select | ✅ |
-| Update | ✅ |
-
----
-
 ## Installation
 
 ### HACS (Recommended)
