@@ -1,9 +1,9 @@
 # Heiman Home For HomeAssistant
 
-![GitHub Release](https://img.shields.io/github/release/hass-user/heiman-home.svg?style=plastic)
-![GitHub issues](https://img.shields.io/github/issues/hass-user/heiman-home.svg?style=plastic)
-![GitHub Stars](https://img.shields.io/github/stars/hass-user/heiman-home.svg?style=plastic)
-![GitHub Last Commit](https://img.shields.io/github/last-commit/hass-user/heiman-home.svg?style=plastic)
+![GitHub Release](https://img.shields.io/github/release/heimanhome/heiman-home.svg?style=plastic)
+![GitHub issues](https://img.shields.io/github/issues/heimanhome/heiman-home.svg?style=plastic)
+![GitHub Stars](https://img.shields.io/github/stars/heimanhome/heiman-home.svg?style=plastic)
+![GitHub Last Commit](https://img.shields.io/github/last-commit/heimanhome/heiman-home.svg?style=plastic)
 ![Documentation](https://img.shields.io/badge/docs-excellent-brightgreen.svg?style=plastic)
 ![HACS Status](https://img.shields.io/badge/HACS-Default-blue.svg?style=plastic)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-%3E%3D%202026.3.0-brightgreen.svg?style=plastic)
@@ -99,7 +99,7 @@ Falls eine Sprache fehlt, lassen Sie es uns wissen, und wir bemühen uns, diese 
 ### Method 3: One-key Shell via SSH/Terminal & SSH Add-on
 
 ```shell
-wget -O - https://raw.githubusercontent.com/hass-user/heiman-home/main/install.sh | bash -
+wget -O - https://raw.githubusercontent.com/heimanhome/heiman-home/main/install.sh | bash -
 ```
 
 ### After Installation
