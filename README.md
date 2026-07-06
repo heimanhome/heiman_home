@@ -1,17 +1,21 @@
-# Heiman Home
-
-Official Home Assistant cloud integration for Heiman smart home devices.
-
-<p align="center">
-  <img src="custom_components/heiman_home/brand/logo@2x.png" width="420">
-</p>
-
 <p align="center">
 
 ![HACS](https://img.shields.io/badge/HACS-Default-blue)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.7%2B-41BDF5)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green)
 
+</p>
+
+---
+
+# Heiman Home
+
+Official Home Assistant cloud integration for Heiman smart home devices.
+> ⚠️ Currently this integration supports Heiman Cloud devices only.
+> Local Zigbee device integration is not included at this time.
+
+<p align="center">
+  <img src="custom_components/heiman_home/brand/logo@2x.png" width="640">
 </p>
 
 ---
