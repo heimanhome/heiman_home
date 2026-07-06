@@ -3,28 +3,29 @@
 ![HACS](https://img.shields.io/badge/HACS-Default-blue)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.7%2B-41BDF5)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green)
-
 </p>
 
+
 ---
-
-# Heiman Home
-
-Official Home Assistant cloud integration for Heiman smart home devices.
-> ⚠️ Currently this integration supports Heiman Cloud devices only.
-> Local Zigbee device integration is not included at this time.
-
 <p align="center">
   <img src="custom_components/heiman_home/brand/logo@2x.png" width="640">
 </p>
 
----
+
+# Heiman Home
+Official Home Assistant cloud integration for Heiman smart home devices.
+
+> ⚠️ Worth to note:
+>
+> Currently this integration supports Heiman Cloud devices only, Local Zigbee device integration is not included at this time.
+
 
 ## Overview
 
 Heiman Home brings native integration between Home Assistant and Heiman smart home devices.
 
 The integration provides secure OAuth2 authentication, automatic device discovery, MQTT real-time updates, firmware management, and seamless support for multiple Heiman homes.
+
 
 ### Key Features
 
@@ -44,24 +45,19 @@ The integration provides secure OAuth2 authentication, automatic device discover
 ## Supported Devices
 
 ### Safety Devices
-
 - Smoke Alarms
-- Carbon Monoxide Alarms
-- Heat Alarms
-- Gas Sensors
+- Heat Alarms (under development)
+- Carbon Monoxide Alarms (Planned)
+
 
 ### Environmental Sensors
-
-- Temperature Sensors
-- Humidity Sensors
+- Temperature and Humidity Sensors (Planned)
 - Water Leak Sensors
-- Motion Sensors
 
 ### Gateways
+- Smart RF Hub(SubG RF radio only)
+- Smart Zigbee Gatewat(Planned)
 
-- Zigbee Gateways
-- Wi-Fi Gateways
-- Smart Home Hubs
 
 ---
 
@@ -81,10 +77,8 @@ The integration provides secure OAuth2 authentication, automatic device discover
 ## Installation
 
 ### HACS (Recommended)
-
-1. Open HACS
-2. Navigate to Integrations
-3. Add Custom Repository
+1. Install Heiman Home:
+[![Install Heiman Home](upload://k5KxYp6JX1ZOtSikDi8qOsMfn4Y.png)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ha-china&repository=heiman_home&category=integration)
 
 ```
 https://github.com/heimanhome/heiman_home
