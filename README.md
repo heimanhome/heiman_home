@@ -7,7 +7,7 @@
 
 
 ---
-<p align="center">
+<p align="left">
   <img src="custom_components/heiman_home/brand/logo@2x.png" width="640">
 </p>
 
@@ -77,35 +77,20 @@ The integration provides secure OAuth2 authentication, automatic device discover
 ## Installation
 
 ### HACS (Recommended)
-1. Install Heiman Home:
-[![Install Heiman Home](upload://k5KxYp6JX1ZOtSikDi8qOsMfn4Y.png)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ha-china&repository=heiman_home&category=integration)
+1. Click the icon and install Heiman Home:
+[![Install Heiman Home](https://community-assets.home-assistant.io/original/4X/8/c/d/8cd1e59d88b00047b1b5ef5e19611794f3699618.png)](https://my.home-assistant.io/redirect/hacs_repository/?owner=heimanhome&repository=heiman_home&category=integration)
 
-```
-https://github.com/heimanhome/heiman_home
-```
-
-4. Select category:
-
-```
-Integration
-```
-
-5. Install
-6. Restart Home Assistant
+2. Restart Home Assistant
 
 ---
+
 
 ## Configuration
 
 1. Open Home Assistant
 2. Settings → Devices & Services
 3. Add Integration
-4. Search:
-
-```
-Heiman Home
-```
-
+4. Search **Heiman Home**
 5. Login using your Heiman account
 6. Authorize Home Assistant
 7. Select your Home
@@ -135,19 +120,19 @@ Current supported advanced features include:
 - Device Diagnostics
 - Siren Control
 - Battery Status
-- Tamper Detection
+- Tamper/Mount Detection
 - OTA Upgrade Support
 
 More features will continue to be added through future updates.
 
+
 ---
 
 ## Documentation
-
 https://leo2442926161.github.io/heiman-docs/
 
+
+
 ---
-
 ## License
-
 Apache 2.0
