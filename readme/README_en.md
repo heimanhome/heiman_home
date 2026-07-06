@@ -1,476 +1,190 @@
-# Heiman Home For HomeAssistant
+<p align="center">
+
+![HACS](https://img.shields.io/badge/HACS-Default-blue)
+![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.7%2B-41BDF5)
+![License](https://img.shields.io/badge/License-Apache%202.0-green)
+</p>
+
 
 ---
-![logo@2x.png](custom_components/heiman_home/brand/logo%402x.png)
+<p align="left">
+  <img src="custom_components/heiman_home/brand/logo@2x.png" width="640">
+</p>
+
+
+# Heiman Home
+Official Home Assistant cloud integration for Heiman smart home devices.
+
+> ⚠️ Worth to note:
+>
+> Currently this integration supports Heiman Cloud devices only, Local Zigbee device integration is not included at this time.
+
+
 ## Overview
 
-This integration for Home Assistant allows the use of Heiman smart home devices within a smart home system. It connects to the Heiman Cloud API and uses MQTT protocol for real-time device status updates.
+Heiman Home brings native integration between Home Assistant and Heiman smart home devices.
 
-This integration enables users to easily integrate their Heiman devices into Home Assistant and use them for various automations and monitoring, including firmware management and child device control.
+The integration provides secure OAuth2 authentication, automatic device discovery, MQTT real-time updates, firmware management, and seamless support for multiple Heiman homes.
 
-### Available Languages
 
-- [English (en)](README_en.md)
-- [German (deutsch) (de)](README_de.md)
-- [Dutch (nederlands) (nl)](README_nl.md)
-- [Spanish (español) (es)](README_es.md)
-- [French (français) (fr)](README_fr.md)
-- [Italian (italiano) (it)](README_it.md)
-- [Portuguese (português) (pt)](README_pt.md)
-- [Russian (русский) (ru)](README_ru.md)
-- [Simplified Chinese (中文) (cn)](README_cn.md)
-- [Japanese (日本語) (ja)](README_ja.md)
-- [Arabic (العربية) (ar)](README_ar.md)
-- [Greek (Ελληνικά) (el)](README_el.md)
-- [Hindi (हिन्दी) (hi)](README_hi.md)
-- [Polish (polski) (pl)](README_pl.md)
-- [Turkish (türkçe) (tr)](README_tr.md)
+### Key Features
 
-If a language is missing, please let us know, and we will do our best to add it.
+- OAuth2 secure authentication
+- MQTT real-time device updates
+- Multi-home support
+- Firmware update management
+- Device diagnostics
+- Battery monitoring
+- Remote self-test
+- Remote silence
+- Home Assistant native entities
+- HACS installation support
 
 ---
 
-## Features
-
-- 🔌 **Multi-device Support**: Gateways, sensors, switches, alarms, and more
-- ☁️ **Cloud Integration**: Connect via Heiman account with OAuth2 authentication
-- 📡 **MQTT Real-time Updates**: Instant device status updates via MQTT push
-- 🔄 **Firmware Management**: Check and install firmware updates directly from Home Assistant
-- 👨‍👩‍👧‍👦 **Child Device Management**: Add, remove, and manage gateway sub-devices via MQTT
-- 🏠 **Multi-home Support**: Manage multiple Heiman homes independently
-- 🎛️ **Comprehensive Entities**: Sensors, switches, buttons, selects, binary sensors, and update entities
-- ⚙️ **Web UI Configuration**: Easy setup without YAML configuration
-
-<a name="installation"></a>
-## Installation
-
-
-### Method 1: HACS (Recommended)
-
-#### First Installation
-1. Open **HACS** → **Integrations**
-2. Click **+ EXPLORE & DOWNLOAD REPOSITORIES**
-3. Search for `Heiman Home` or click the three dots (⋮) → **Custom repositories**
-4. Add repository: `https://github.com/heimanhome/heiman_home` with category `Integration`
-5. Click **DOWNLOAD THIS REPOSITORY**
-
-#### Update Component
-1. Open **HACS** → **Integrations**
-   ![Download (1)](https://github.com/Elwinmage/ha-xsense-component/assets/15807572/3220c686-f53f-4766-9523-e3272a6ff104)
-2. Find **Heiman Home**
-   ![img.png](image/img.png)
-3. Click ****UPDATE** or **Redownload****
-   ![img_1.png](image/img_1.png)
-### Method 2: Manual Installation via Samba/SFTP
-
-1. Download the latest release from [GitHub Releases](https://github.com/heimanhome/heiman_home/releases)
-2. Extract the `heiman_home` folder
-3. Copy the `heiman_home` folder to your Home Assistant `custom_components` directory
-   ```
-   /config/custom_components/heiman_home/
-   ```
-![img_2.png](image/img_2.png)
-![img_3.png](image/img_3.png)
-### Method 3: One-key Shell via SSH/Terminal & SSH Add-on
-
-```shell
-wget -O - https://raw.githubusercontent.com/hass-user/heiman-home/main/install.sh | bash -
-```
-
-### After Installation
-
-1. Restart Home Assistant
-2. Go to **Settings** → **Devices & Services**
-3. Click **+ Add Integration**
-4. Search for `Heiman Home`
-
-<a name="configuration"></a>
-## Configuration
-
-### Add Integration via Web UI
-
-1. Open Home Assistant web UI
-2. Navigate to **Settings** → **Devices & Services**
-3. Click **Add Integration**
-4. Search for `Heiman Home` and select it
-5. Authorize with your Heiman account (OAuth2)
-6. Select the home you want to integrate
-7. Complete the setup
-
-### Authentication
-
-The integration uses OAuth2 for secure authentication:
-- Click **Authorize** to log in to your Heiman account
-- Grant necessary permissions
-- Select the home you want to integrate
-
-### Multiple Homes
-
-You can add multiple Heiman homes:
-1. Each home creates a separate configuration entry
-2. Each home has independent device management
-3. Configure each home separately in **Devices & Services**
-
-### Device Filtering
-
-You can filter which devices to integrate:
-1. Open the integration settings
-2. Navigate to **Options**
-3. Enable/disable specific devices
-4. Save changes
-
-<a name="supported-devices"></a>
 ## Supported Devices
 
+### Safety Devices
+- Smoke Alarms
+- Heat Alarms (Under Development)
+- Carbon Monoxide Alarms (Planned)
+
+
+### Environmental Sensors
+- Temperature and Humidity Sensors (Planned)
+- Water Leak Sensors
+
 ### Gateways
--  Smart Gateway (WS3GW-R, etc.)
-- 🌐 Zigbee Gateway
-- 🌐 WiFi Gateway
+- Smart RF Hub (**SubG RF radio only**)
+- Smart Zigbee Gatewat(Planned)
 
-### Sensors
-- 🌡️ Temperature & Humidity Sensors
-- 🚪 Door/Window Sensors
-- 💧 Water Leak Sensors
-- 🔥 Smoke Sensors
-- 💨 Gas Sensors
-- 🏃 Motion Sensors
-- 🌞 Illumination Sensors
-
-### Alarms & Security
-- 🚨 Alarm Systems
-- 🔔 Alarm Sound Control
-- 🚪 Access Control
-
-### Switches & Controls
-- 🔌 Smart Plugs
-- 💡 Light Switches
-- 🎛️ Scene Controllers
-
-### Other Devices
-- ️ Thermostats
-- 💨 Air Quality Monitors
-- 🔋 Battery-powered Devices
-
-<a name="entities"></a>
-## Entity Types
-
-### Sensor Entities
-- Temperature
-- Humidity
-- Battery Level
-- Signal Strength (RSSI)
-- Illumination
-- Device Status
-
-### Binary Sensor Entities
-- Door/Window Open/Closed
-- Motion Detected
-- Water Leak
-- Smoke Detected
-- Tamper Status
-- Low Battery Warning
-
-### Switch Entities
-- Device On/Off
-- Indicator Light
-- Buzzer Control
-- Alarm Enable/Disable
-
-### Button Entities
-- Refresh Device Status
-- Remote Check
-- Remote Locate
-- Remote Silence
-
-### Select Entities
-- Alarm Sound Options (Fast Beep, Medium Beep, Slow Beep)
-- Temperature Unit (°C / °F)
-- Operating Mode
-- Signal Level Display
-
-### Number Entities
-- Temperature High Threshold
-- Temperature Low Threshold
-- Humidity High Threshold
-- Humidity Low Threshold
-- Temperature Comfort Range
-- Humidity Comfort Range
-
-### Update Entities
-- Firmware Version
-- Available Updates
-- Firmware Installation Progress
-
-<a name="firmware-management"></a>
-## Firmware Management
-
-### Check for Updates
-- Firmware updates are automatically checked during device synchronization
-- Update entities show available firmware versions
-- Compare installed version with latest available version
-
-### Install Firmware Updates
-1. Navigate to the device in Home Assistant
-2. Open the **Firmware** entity
-3. Click **Install** button
-4. Monitor update progress in real-time
-5. Device will restart after update completion
-
-### Update Features
-- ✅ Automatic version detection
-- ✅ Progress monitoring (0-100%)
-- ✅ Update status tracking
-- ✅ Version comparison
-- ✅ Batch update checking
-
-<a name="mqtt-integration"></a>
-## MQTT Integration
-
-### Real-time Updates
-The integration uses MQTT for instant device status updates:
-- No polling delay
-- Instant state changes
-- Lower API usage
-- Better performance
-
-### MQTT Configuration
-- Automatically configured during setup
-- Uses Heiman MQTT broker
-- Secure connection with TLS/SSL
-- No manual configuration required
-
-### Supported MQTT Features
-- Device property updates
-- Online/offline status
-- Alarm events
-- Sensor readings
-- Child device management (registration, unregistration, discovery)
-
-<a name="child-device-management"></a>
-## Child Device Management
-
-The integration provides comprehensive child device management through the `heiman-connect` library. 
-All device management logic is implemented in the SDK, and Home Assistant integration provides a simple API to access these features.
-
-### Using Child Device Manager
-
-```python
-from heimanconnect import ChildDeviceManager
-
-# Get child device manager from API client
-device_manager = await api_client.async_get_child_device_manager(
-    user_id="your_user_id",
-    devices=devices_dict,
-    user_display_name="Your Name"
-)
-
-# Add a child device (recommended method)
-result = await device_manager.add_and_sync_device(
-    gateway_product_id="1733421468953686016",
-    gateway_device_id="1760910156165971969",
-    child_device_id="1768080341172985856",
-    child_product_id="1734821218500292608",
-    child_device_name="Door Sensor"
-)
-
-# Remove a child device (recommended method)
-result = await device_manager.remove_and_sync_device(
-    gateway_product_id="1733421468953686016",
-    gateway_device_id="1760910156165971969",
-    child_device_id="1768080341172985856",
-    product_id="1734821218500292608",
-    device_name="01000053"
-)
-```
-
-### Available Methods
-
-For detailed documentation on all available methods and their parameters, see the [heiman-connect library documentation](https://pypi.org/project/heiman-connect/).
-
-<a name="advanced-configuration"></a>
-## Advanced Configuration
-
-### Logger Configuration
-
-Enable debug logging for troubleshooting:
-
-```yaml
-# configuration.yaml
-logger:
-  default: warning
-  logs:
-    custom_components.heiman_home: debug
-    heimanconnect: debug
-```
-
-### Customizing Entities
-
-```yaml
-# configuration.yaml
-homeassistant:
-  customize: !include customize.yaml
-
-# customize.yaml
-sensor.heiman_temperature:
-  friendly_name: "Living Room Temperature"
-  device_class: temperature
-  unit_of_measurement: "°C"
-
-binary_sensor.heiman_door:
-  friendly_name: "Front Door"
-  device_class: door
-```
-
-### Exclude Attributes
-
-```yaml
-# configuration.yaml
-heiman_home:
-  exclude_attributes:
-    - raw_data
-    - firmware_info
-    - configuration
-```
-
-<a name="services"></a>
-## Services
-
-### `heiman_home.refresh_device`
-
-Manually refresh a device's status.
-
-```yaml
-service: heiman_home.refresh_device
-data:
-  device_id: "1972646416676724736"
-```
-
-### `heiman_home.refresh_all_devices`
-
-Refresh all devices in the integration.
-
-```yaml
-service: heiman_home.refresh_all_devices
-```
-
-<a name="debugging"></a>
-## Debugging
-
-### Get Entity State Attributes
-
-1. Open **Developer Tools** → **States**
-2. Search for your entity (e.g., `sensor.heiman_temperature`)
-3. View all attributes and current state
-
-### Get Debug Logs
-
-1. Enable debug logging (see [Logger Configuration](#advanced-configuration))
-2. Open **Settings** → **System** → **Logs**
-3. Search for `heiman_home` or `heimanconnect`
-
-### Common Issues
-
-#### Device Not Showing
-- Check device filtering settings
-- Verify device is online in Heiman app
-- Restart the integration
-
-#### Firmware Update Not Working
-- Ensure device is online
-- Check device compatibility
-- Verify firmware update is available in Heiman app
-
-#### Connection Issues
-- Check internet connectivity
-- Verify Heiman account credentials
-- Check Home Assistant logs for errors
-
-#### MQTT Not Connecting
-- Verify network allows outbound connections to `spmqtt.heiman.cn:1884`
-- Check firewall settings
-- Restart Home Assistant
-
-<a name="troubleshooting"></a>
-## Troubleshooting
-
-### Authentication Failed
-1. Re-authorize the integration
-2. Verify Heiman account credentials
-3. Check if account has access to the selected home
-
-### Devices Not Updating
-1. Check MQTT connection status in logs
-2. Verify device is online
-3. Try manual refresh via service
-
-### High Database Usage
-- Exclude unnecessary attributes (see [Exclude Attributes](#advanced-configuration))
-- Disable unused entities
-- Check for entities with too many state changes
-
-### Performance Issues
-- Reduce update interval if possible
-- Filter out unused devices
-- Disable MQTT if not needed (not recommended)
-
-<a name="development"></a>
-## Development
-
-### Project Structure
-```
-heiman_home/
-├── __init__.py          # Integration initialization
-├── api.py               # API client wrapper
-├── config_flow.py       # Configuration flow
-├── const.py             # Constants and configuration
-├── coordinator.py       # Data update coordinator
-├── sensor.py            # Sensor platform
-├── binary_sensor.py     # Binary sensor platform
-├── switch.py            # Switch platform
-├── button.py            # Button platform
-├── select.py            # Select platform
-├── number.py            # Number platform
-├── update.py            # Update platform (firmware)
-├── manifest.json        # Integration metadata
-└── strings.json         # Translations
-```
-
-**Note**: All device management logic is in the `heiman-connect` library, not in this integration.
-
-### Dependencies
-- `heiman-connect`: Python library for Heiman API
-- `packaging`: Version comparison for firmware updates
-
-<a name="contributing"></a>
-## Contributing
-
-Contributions are welcome! Please feel free to submit:
-- Bug reports
-- Feature requests
-- Device support
-- Translations
-- Documentation improvements
-
-<a name="license"></a>
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-<a name="acknowledgments"></a>
-## Acknowledgments
-
-- [Heiman](www.heimantech.com) for providing the IoT platform
-- [Home Assistant](https://www.home-assistant.io) community
-- [HACS](https://hacs.xyz) for the integration framework
-- All contributors and testers
-
-<a name="support"></a>
-## Support
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/heimanhome/heiman_home/issues)
-- **Home Assistant Community Forum**: [Discuss and get help](https://community.home-assistant.io/)
-- **Documentation**: [Full documentation](https://github.com/heimanhome/heiman_home/wiki)
 
 ---
 
-**Enjoy your smart home with Heiman and Home Assistant! 🏠✨**
+## Installation
+
+### HACS (Recommended)
+1. Click the icon and install Heiman Home:
+[![Install Heiman Home](https://community-assets.home-assistant.io/original/4X/8/c/d/8cd1e59d88b00047b1b5ef5e19611794f3699618.png)](https://my.home-assistant.io/redirect/hacs_repository/?owner=heimanhome&repository=heiman_home&category=integration)
+
+2. Restart Home Assistant
+
+---
+
+
+## Configuration
+
+1. Open Home Assistant
+2. Settings → Devices & Services
+3. Add Integration
+4. Search **Heiman Home**
+5. Login using your Heiman account
+6. Authorize Home Assistant
+7. Select your Home
+8. Finish setup
+
+---
+
+
+## Documentation 
+[Heiman Home – How to Connect Heiman Home Integration](https://support.heimanhome.com/faq/?type=detail&id=1)
+
+---
+
+
+## Home Assistant Support
+
+Compatible with:
+
+- Home Assistant OS
+- Home Assistant Container
+- Home Assistant Supervised
+- Home Assistant Core
+
+---
+
+## Community Driven
+
+Many features were developed directly from feedback provided by Home Assistant users.
+
+Current supported advanced features include:
+
+- Remote Silence
+- Remote Self-Test
+- Device Diagnostics
+- Siren Control
+- Battery Status
+- Tamper/Mount Detection
+- OTA Upgrade Support
+
+More features will continue to be added through future updates.
+
+
+---
+
+## How to Ask Questions
+
+If you have questions, feature requests, or need help with setup, please open a GitHub Issue.
+
+Before opening an issue, please include as much information as possible:
+
+- Home Assistant version
+- Heiman Home integration version
+- Installation method, for example HACS or manual installation
+- Device model
+- Problem description
+- Error logs, if available
+- Screenshots, if helpful
+
+Please avoid sharing sensitive information such as passwords, tokens, or account credentials.
+
+
+[GitHub Issues Page](https://github.com/heimanhome/heiman_home/issues)
+
+
+---
+
+## How to Contribute
+
+Contributions are welcome.
+
+You can help this project by:
+
+- Reporting bugs
+- Suggesting new features
+- Improving documentation
+- Testing new versions
+- Submitting pull requests
+- Sharing feedback from real Home Assistant usage
+
+### Contributing Code
+
+1. Fork this repository
+2. Create a new branch
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. Make your changes
+4. Test the integration locally
+5. Commit your changes
+6. git commit -m "Add your feature description"
+7. Push your branch
+```bash
+git push origin feature/your-feature-name
+```
+
+8. Open a Pull Request
+
+Please keep pull requests focused and describe clearly what has been changed.
+
+---
+
+
+## Support:
+Email: support@heimanhome.com
+
+
+### Web
+Looking for manual?
+[Web support](https://support.heimanhome.com/)
