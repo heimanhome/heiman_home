@@ -23,6 +23,7 @@ from homeassistant.const import CONF_TOKEN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from heimanconnect.utils import update_device_property_from_metadata
 
 from .api import HeimanApiClient
 from .const import CONF_HOME_ID, CONF_USER_ID
@@ -428,7 +429,7 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                     # Iterate through the list and update properties
                     if isinstance(metadata_list, list):
                         for prop_item in metadata_list:
-                            self._update_device_property(device, prop_item)
+                            update_device_property_from_metadata(device, prop_item)
             except Exception:
                 _LOGGER.exception(
                     "Failed to parse deriveMetadata for %s", device.device_id
