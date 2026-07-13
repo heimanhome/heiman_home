@@ -16,4 +16,4 @@ mypy>=2.1.0
 pre-commit>=4.6.0
 
 # Type stubs
-types-requests>=2.33.0.20260518
+types-requests>=2.33.0.20260712
