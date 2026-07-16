@@ -15,7 +15,7 @@
 # Heiman Home
 Official Home Assistant cloud integration for Heiman smart home devices.
 
-> ⚠️ Worth to note:
+> ⚠️ Important to note:
 >
 > Currently this integration supports Heiman Cloud devices only, Local Zigbee device integration is not included at this time.
 
@@ -56,7 +56,7 @@ The integration provides secure OAuth2 authentication, automatic device discover
 
 ### Gateways
 - Smart RF Hub (**SubG RF radio only**)
-- Smart Zigbee Gateway(Planned)
+- Smart Zigbee Gateway (Planned)
 
 
 ---
@@ -183,10 +183,10 @@ Please keep pull requests focused and describe clearly what has been changed.
 ---
 
 
-## Support:
+## Support
 Email: support@heimanhome.com
 
 
 ### Web support
-Looking for manual?
+Looking for a manual?
 [Web support](https://support.heimanhome.com/)
