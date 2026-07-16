@@ -56,14 +56,16 @@ The integration provides secure OAuth2 authentication, automatic device discover
 
 ### Gateways
 - Smart RF Hub (**SubG RF radio only**)
-- Smart Zigbee Gatewat(Planned)
+- Smart Zigbee Gateway(Planned)
 
 
 ---
 
 ## Installation
 
-### HACS (Recommended)
+### HACS (Required)
+> ⚠️ Please install HACS in Home Assistant first, as this integration requires it.
+
 1. Click the icon and install Heiman Home:
 [![Install Heiman Home](https://community-assets.home-assistant.io/original/4X/8/c/d/8cd1e59d88b00047b1b5ef5e19611794f3699618.png)](https://my.home-assistant.io/redirect/hacs_repository/?owner=heimanhome&repository=heiman_home&category=integration)
 
@@ -185,6 +187,6 @@ Please keep pull requests focused and describe clearly what has been changed.
 Email: support@heimanhome.com
 
 
-### Web
+### Web support
 Looking for manual?
 [Web support](https://support.heimanhome.com/)
