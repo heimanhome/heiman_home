@@ -48,7 +48,7 @@ from .const import (
 )
 from .coordinator import HeimanDataUpdateCoordinator
 
-type HeimanConfigEntry = ConfigEntry[HeimanDataUpdateCoordinator]
+HeimanConfigEntry = ConfigEntry[HeimanDataUpdateCoordinator]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 

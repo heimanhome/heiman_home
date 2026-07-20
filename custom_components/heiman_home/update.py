@@ -205,7 +205,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         """
         device = self.coordinator.get_device(self._device.device_id)
         if not device:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "Update entity %s: device not found in coordinator",
                 self._device.device_name,
             )
@@ -213,7 +213,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
 
         # Get installed version
         installed_version = self._extract_firmware_version(device)
-        _LOGGER.info(
+        _LOGGER.debug(
             "Update entity %s: installed_version=%s,"
             " attr_installed_version=%s, device.firmware_version=%s",
             self._device.device_name,
@@ -234,7 +234,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         has_upgrade_info = (
             hasattr(device, "firmware_upgrade_info") and device.firmware_upgrade_info
         )
-        _LOGGER.info(
+        _LOGGER.debug(
             "Update entity %s: has_firmware_upgrade_info=%s",
             self._device.device_name,
             has_upgrade_info,
@@ -244,7 +244,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
             firmware_info = device.firmware_upgrade_info
             latest_version = firmware_info.get("latest_version")
 
-            _LOGGER.info(
+            _LOGGER.debug(
                 "Update entity %s: firmware_upgrade_info=%s, latest_version=%s",
                 self._device.device_name,
                 firmware_info,
@@ -256,7 +256,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
                 is_newer = self._version_is_newer(
                     latest_version, self._attr_installed_version
                 )
-                _LOGGER.info(
+                _LOGGER.debug(
                     "Update entity %s: version comparison result: %s > %s = %s",
                     self._device.device_name,
                     latest_version,
@@ -288,7 +288,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         if installed_version and not self._attr_latest_version:
             self._attr_latest_version = installed_version
 
-        _LOGGER.info(
+        _LOGGER.debug(
             "Update entity %s: final state - installed=%s, latest=%s",
             self._device.device_name,
             self._attr_installed_version,
@@ -458,20 +458,20 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         This is called when the coordinator has new data (e.g., from MQTT).
         Updates entity state immediately without waiting for next poll.
         """
-        _LOGGER.info(
+        _LOGGER.debug(
             "_handle_coordinator_update called for %s",
             self._device.device_name,
         )
         if self._update_from_cache():
             # Write the new state to Home Assistant immediately
-            _LOGGER.info(
+            _LOGGER.debug(
                 "Writing state for %s: installed=%s, latest=%s",
                 self._device.device_name,
                 self._attr_installed_version,
                 self._attr_latest_version,
             )
             self.async_write_ha_state()
-            _LOGGER.info(
+            _LOGGER.debug(
                 "State written for %s, notifying HA",
                 self._device.device_name,
             )
