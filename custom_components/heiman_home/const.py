@@ -165,6 +165,7 @@ ENTITY_ICONS = {
         "temperature": "mdi:thermometer",
         "SignalStrength": "mdi:signal",
         "TimeZone": "mdi:clock-time-nine-outline",
+        "SignalLevel": "mdi:signal",
     },
     # Switch Icons
     "switch": {

@@ -126,6 +126,15 @@
       "rssi": {
         "default": "mdi:signal"
       },
+      "signallevel": {
+        "default": "mdi:signal",
+        "state": {
+          "medium": "mdi:signal-distance-variant",
+          "strong": "mdi:signal-strong",
+          "very_weak": "mdi:signal-off",
+          "weak": "mdi:signal-2g"
+        }
+      },
       "rssi_level": {
         "default": "mdi:signal",
         "state": {

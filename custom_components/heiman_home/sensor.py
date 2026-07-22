@@ -168,6 +168,10 @@ class HeimanSensorEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SensorE
                 "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
                 "key": "signal_strength",
             },
+            "signallevel": {
+                "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
+                "key": "signal_strength",
+            },
             "signal": {
                 "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
                 "key": "signal_strength",
@@ -281,13 +285,13 @@ class HeimanSensorEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SensorE
             return
 
         # If not found, try lowercase matching
-        prop_lower = property_identifier.lower()
-        if prop_lower in icons_config:
-            self._attr_icon = icons_config[prop_lower]
+        if property_identifier in icons_config:
+            self._attr_icon = icons_config[property_identifier]
             return
 
         # Set default icon based on device class (use getattr for safe access)
         device_class = getattr(self, "_attr_device_class", None)
+        _LOGGER.debug(f"device_class: {device_class}")
         if device_class == SensorDeviceClass.TEMPERATURE:
             self._attr_icon = "mdi:thermometer"
         elif device_class == SensorDeviceClass.HUMIDITY:
