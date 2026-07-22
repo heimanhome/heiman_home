@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
-from typing import Any
+from collections.abc import Coroutine
+from typing import Any, TypeVar
 
 from heimanconnect import (
     ChildDeviceManager,
@@ -19,13 +21,13 @@ from heimanconnect import (
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
-    OAuth2TokenRequestReauthError,
-    OAuth2TokenRequestTransientError,
 )
 from homeassistant.helpers.config_entry_oauth2_flow import OAuth2Session
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .const import API_BASE_URL
+
+_T = TypeVar("_T")
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,31 +88,69 @@ class HeimanApiClient:
         return None
 
     async def _ensure_authenticated(self) -> None:
-        """Ensure we have a valid access token."""
-        if self._session:
-            try:
-                await self._session.async_ensure_token_valid()
-            except OAuth2TokenRequestReauthError as err:
-                # Token is invalid/expired, requires re-authentication
-                _LOGGER.error(
-                    "Token refresh failed, re-authentication required: %s", err
-                )
-                raise ConfigEntryAuthFailed(
-                    "Token expired, please re-authenticate"
-                ) from err
-            except OAuth2TokenRequestTransientError as err:
-                # Temporary error (network issue), should retry
-                _LOGGER.debug("Token refresh transient error, will retry: %s", err)
-                raise UpdateFailed(f"Temporary token refresh error: {err}") from err
-            except Exception as err:
-                # Unexpected error
-                _LOGGER.exception("Unexpected error during token refresh")
-                raise UpdateFailed(f"Token refresh failed: {err}") from err
+        """Ensure we have a valid access token and the client is initialized.
 
-        # Re-initialize client if token updated
+        Heiman tokens never expire, so we skip the proactive OAuth2
+        refresh.  We only verify the token is present and the HTTP
+        client has the latest token value.
+        """
         current_token = self._get_access_token()
-        if self._http_client and current_token:
+        if not current_token:
+            raise ConfigEntryAuthFailed("No access token available")
+
+        # Re-initialize client if token was updated externally or
+        # the HTTP client hasn't been created yet.
+        if self._http_client:
             self._http_client.update_access_token(current_token)
+
+    async def _call_with_retry(
+        self,
+        coro: Coroutine[Any, Any, _T],
+        *,
+        max_retries: int = 3,
+        operation_name: str = "API call",
+    ) -> _T:
+        """Call a coroutine with retry on transient network errors.
+
+        Retries on connection errors, timeouts, and OS-level network
+        failures with exponential backoff (1 s, 2 s, 4 s).
+
+        Authentication errors are NEVER retried — they propagate
+        immediately so the caller can decide whether to re-auth.
+        """
+        last_error: Exception | None = None
+        for attempt in range(max_retries):
+            try:
+                return await coro
+            except HeimanAuthError:
+                raise  # Never retry auth errors
+            except HeimanConnectionError as err:
+                last_error = err
+            except (asyncio.TimeoutError, OSError) as err:
+                last_error = err
+            else:
+                # Should not be reached when the try-block contains a return,
+                # but kept for clarity.
+                break
+
+            if attempt < max_retries - 1:
+                delay = 2**attempt
+                _LOGGER.warning(
+                    "Transient error during %s (attempt %d/%d), "
+                    "retrying in %ds: %s",
+                    operation_name,
+                    attempt + 1,
+                    max_retries,
+                    delay,
+                    last_error,
+                )
+                await asyncio.sleep(delay)
+                continue
+
+        # All retries exhausted
+        raise HeimanConnectionError(
+            f"{operation_name} failed after {max_retries} retries: {last_error}"
+        ) from last_error
 
     async def async_get_user_info(self) -> HeimanUser:
         """Get current user information.
@@ -120,7 +160,7 @@ class HeimanApiClient:
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails
-            UpdateFailed: If network request fails
+            UpdateFailed: If network request fails after retries
         """
         await self._ensure_authenticated()
 
@@ -128,14 +168,29 @@ class HeimanApiClient:
             raise HeimanConnectionError("Client not initialized")
 
         try:
-            user = await self._cloud_client.async_get_user_info()
+            user = await self._call_with_retry(
+                self._cloud_client.async_get_user_info(),
+                operation_name="get user info",
+            )
         except HeimanAuthError as err:
-            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
+            _LOGGER.error(
+                "Authentication rejected by server during get_user_info. "
+                "This may indicate the token was revoked or the account "
+                "is no longer authorized: %s",
+                err,
+            )
+            raise ConfigEntryAuthFailed(
+                f"Authentication failed: {err}"
+            ) from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(f"Connection error getting user info: {err}") from err
+            raise UpdateFailed(
+                f"Connection error getting user info: {err}"
+            ) from err
         except Exception as err:
             _LOGGER.exception("Unexpected error getting user info")
-            raise HeimanConnectionError(f"Failed to get user info: {err}") from err
+            raise HeimanConnectionError(
+                f"Failed to get user info: {err}"
+            ) from err
 
         _LOGGER.debug("Retrieved user info: %s", user.email)
         return user
@@ -148,7 +203,7 @@ class HeimanApiClient:
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails
-            UpdateFailed: If network request fails
+            UpdateFailed: If network request fails after retries
         """
         await self._ensure_authenticated()
 
@@ -156,14 +211,26 @@ class HeimanApiClient:
             raise HeimanConnectionError("Client not initialized")
 
         try:
-            homes = await self._cloud_client.async_get_homes()
+            homes = await self._call_with_retry(
+                self._cloud_client.async_get_homes(),
+                operation_name="get homes",
+            )
         except HeimanAuthError as err:
-            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
+            _LOGGER.error(
+                "Authentication rejected by server during get_homes: %s", err
+            )
+            raise ConfigEntryAuthFailed(
+                f"Authentication failed: {err}"
+            ) from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(f"Connection error getting homes: {err}") from err
+            raise UpdateFailed(
+                f"Connection error getting homes: {err}"
+            ) from err
         except Exception as err:
             _LOGGER.exception("Unexpected error getting homes")
-            raise HeimanConnectionError(f"Failed to get homes: {err}") from err
+            raise HeimanConnectionError(
+                f"Failed to get homes: {err}"
+            ) from err
 
         _LOGGER.debug("Retrieved %d homes", len(homes))
         return homes
@@ -179,7 +246,7 @@ class HeimanApiClient:
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails
-            UpdateFailed: If network request fails
+            UpdateFailed: If network request fails after retries
         """
         await self._ensure_authenticated()
 
@@ -189,14 +256,26 @@ class HeimanApiClient:
         try:
             # Set current home ID
             self._cloud_client.home_id = home_id
-            devices = await self._cloud_client.async_get_devices(home_id=home_id)
+            devices = await self._call_with_retry(
+                self._cloud_client.async_get_devices(home_id=home_id),
+                operation_name="get devices",
+            )
         except HeimanAuthError as err:
-            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
+            _LOGGER.error(
+                "Authentication rejected by server during get_devices: %s", err
+            )
+            raise ConfigEntryAuthFailed(
+                f"Authentication failed: {err}"
+            ) from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(f"Connection error getting devices: {err}") from err
+            raise UpdateFailed(
+                f"Connection error getting devices: {err}"
+            ) from err
         except Exception as err:
             _LOGGER.exception("Unexpected error getting devices")
-            raise HeimanConnectionError(f"Failed to get devices: {err}") from err
+            raise HeimanConnectionError(
+                f"Failed to get devices: {err}"
+            ) from err
 
         _LOGGER.debug("Retrieved %d devices", len(devices))
         return devices
@@ -212,7 +291,7 @@ class HeimanApiClient:
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails
-            UpdateFailed: If network request fails
+            UpdateFailed: If network request fails after retries
         """
         await self._ensure_authenticated()
 
@@ -220,15 +299,28 @@ class HeimanApiClient:
             raise HeimanConnectionError("Client not initialized")
 
         try:
-            properties = await self._cloud_client.async_get_device_properties(device_id)
+            properties = await self._call_with_retry(
+                self._cloud_client.async_get_device_properties(device_id),
+                operation_name="get device properties",
+            )
         except HeimanAuthError as err:
-            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
+            _LOGGER.error(
+                "Authentication rejected by server during "
+                "get_device_properties(%s): %s",
+                device_id,
+                err,
+            )
+            raise ConfigEntryAuthFailed(
+                f"Authentication failed: {err}"
+            ) from err
         except HeimanConnectionError as err:
             raise UpdateFailed(
                 f"Connection error getting device properties: {err}"
             ) from err
         except Exception as err:
-            _LOGGER.exception("Unexpected error getting device properties")
+            _LOGGER.exception(
+                "Unexpected error getting device properties for %s", device_id
+            )
             raise HeimanConnectionError(
                 f"Failed to get device properties: {err}"
             ) from err
@@ -254,7 +346,7 @@ class HeimanApiClient:
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails
-            UpdateFailed: If network request fails
+            UpdateFailed: If network request fails after retries
         """
         await self._ensure_authenticated()
 
@@ -262,18 +354,36 @@ class HeimanApiClient:
             raise HeimanConnectionError("Client not initialized")
 
         try:
-            result = await self._cloud_client.async_control_device(
-                device_id=device_id,
-                property_identifier=property_identifier,
-                value=value,
+            result = await self._call_with_retry(
+                self._cloud_client.async_control_device(
+                    device_id=device_id,
+                    property_identifier=property_identifier,
+                    value=value,
+                ),
+                operation_name=f"control device {device_id}",
             )
         except HeimanAuthError as err:
-            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
+            _LOGGER.error(
+                "Authentication rejected by server during "
+                "control_device(%s, %s): %s",
+                device_id,
+                property_identifier,
+                err,
+            )
+            raise ConfigEntryAuthFailed(
+                f"Authentication failed: {err}"
+            ) from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(f"Connection error controlling device: {err}") from err
+            raise UpdateFailed(
+                f"Connection error controlling device: {err}"
+            ) from err
         except Exception as err:
-            _LOGGER.exception("Unexpected error controlling device")
-            raise HeimanConnectionError(f"Failed to control device: {err}") from err
+            _LOGGER.exception(
+                "Unexpected error controlling device %s", device_id
+            )
+            raise HeimanConnectionError(
+                f"Failed to control device: {err}"
+            ) from err
 
         _LOGGER.debug(
             "Successfully controlled device %s: %s=%s",

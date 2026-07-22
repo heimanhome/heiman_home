@@ -26,7 +26,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import HeimanApiClient
-from .const import CONF_HOME_ID, CONF_USER_ID
+from .const import CONF_HOME_ID, CONF_USER_ID, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -161,14 +161,66 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
         except UpdateFailed:
             # Re-raise UpdateFailed as-is to preserve retry_after and message
             raise
+        except asyncio.TimeoutError as err:
+            _LOGGER.error("Timeout during data update: %s", err)
+            if self.data.devices:
+                # Graceful degradation: keep cached devices alive
+                _LOGGER.warning(
+                    "Timeout error, but %d cached devices exist. "
+                    "Keeping existing data to avoid mass unavailability.",
+                    len(self.data.devices),
+                )
+                self.data.errors["timeout"] = str(err)
+                return self.data
+            raise UpdateFailed(
+                f"Heiman API request timed out: {err}"
+            ) from err
+        except OSError as err:
+            _LOGGER.error("Network error during data update: %s", err)
+            if self.data.devices:
+                _LOGGER.warning(
+                    "Network error, but %d cached devices exist. "
+                    "Keeping existing data to avoid mass unavailability.",
+                    len(self.data.devices),
+                )
+                self.data.errors["network"] = str(err)
+                return self.data
+            raise UpdateFailed(
+                f"Heiman API network error: {err}"
+            ) from err
         except Exception as err:
-            _LOGGER.error("Unexpected error during data update: %s", err)
+            _LOGGER.exception(
+                "Unexpected error during data update: %s (type=%s)",
+                err,
+                type(err).__name__,
+            )
+            # Graceful degradation: if we already have device data from a
+            # previous successful update, return it so entities stay available.
+            # Only raise UpdateFailed (which marks everything unavailable)
+            # when there is genuinely no cached data to fall back on.
+            if self.data.devices:
+                _LOGGER.warning(
+                    "Unexpected error, but %d cached devices exist. "
+                    "Keeping existing data to avoid mass unavailability. "
+                    "Error details: %s",
+                    len(self.data.devices),
+                    err,
+                )
+                self.data.errors["unexpected"] = (
+                    f"{type(err).__name__}: {err}"
+                )
+                return self.data
             raise UpdateFailed(f"Error fetching Heiman data: {err}") from err
 
         return self.data
 
     async def _fetch_user_and_home_info(self) -> None:
-        """Fetch user and home information on first update."""
+        """Fetch user and home information on first update.
+
+        Failures in user_info are downgraded to warnings instead of
+        raising UpdateFailed, so that a transient user-info error does
+        not mark every device entity unavailable.
+        """
         # Get user info (only on first update)
         if self.data.user_info is None:
             try:
@@ -176,9 +228,15 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
             except ConfigEntryAuthFailed:
                 raise
             except Exception as err:
-                _LOGGER.error("Failed to fetch user info: %s", err)
-                msg = f"Failed to fetch user info: {err}"
-                raise UpdateFailed(msg) from err
+                _LOGGER.warning(
+                    "Failed to fetch user info: %s. "
+                    "Devices will remain available, but user-dependent features "
+                    "(e.g. MQTT display name) may be degraded.",
+                    err,
+                )
+                self.data.errors["user_info"] = str(err)
+                # Do NOT raise UpdateFailed here – let device fetching continue.
+                # The coordinator stays healthy and entities remain available.
 
         # Get home info (only on first update)
         if self.data.home_info is None:
@@ -612,26 +670,24 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
             return
 
         try:
-            # Get authentication data from config entry or OAuth2 session
+            # Get access token from config entry (preferred) or OAuth2 session.
             access_token = None
             user_id = self.config_entry.data.get(CONF_USER_ID)
 
-            # Try to get from config entry token data first
             token_data = self.config_entry.data.get(CONF_TOKEN)
             if token_data and isinstance(token_data, dict):
                 access_token = token_data.get("access_token")
 
-            # Fallback: try to get from OAuth2 session if not in config
+            # Fallback: read token directly from OAuth2 session without
+            # triggering a refresh (Heiman tokens never expire).
             if not access_token and self.oauth_session:
                 try:
-                    await self.oauth_session.async_ensure_token_valid()
-                    # After ensuring token is valid, get it from session.token
                     if self.oauth_session.token:
                         access_token = self.oauth_session.token.get("access_token")
-                    else:
-                        _LOGGER.debug("OAuth2 session token is None after validation")
                 except Exception as err:  # noqa: BLE001
-                    _LOGGER.warning("Failed to get access_token from session: %s", err)
+                    _LOGGER.warning(
+                        "Failed to read access_token from OAuth2 session: %s", err
+                    )
 
             if not access_token:
                 _LOGGER.warning(
@@ -760,6 +816,23 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                     "Stopping reconnection attempts. "
                     "Please check your network or restart Home Assistant.",
                     self._max_reconnect_cycles,
+                )
+                # Fire a persistent HA event so users / automations can react
+                # to the permanent MQTT disconnection.
+                self.hass.bus.fire(
+                    f"{DOMAIN}_mqtt_permanently_disconnected",
+                    {
+                        "reason": "max_reconnect_cycles_exhausted",
+                        "cycles": self._max_reconnect_cycles,
+                        "last_error": str(last_error) if last_error else "unknown",
+                    },
+                )
+                # Also persist a warning in the coordinator's error dictionary
+                # so it is visible in the integration's diagnostic sensors.
+                self.data.errors["mqtt"] = (
+                    f"MQTT permanently disconnected after {self._max_reconnect_cycles} "
+                    f"retry cycles. Device online/offline status and control commands "
+                    f"will not work until Home Assistant is restarted."
                 )
 
         except HeimanMQTTError as err:

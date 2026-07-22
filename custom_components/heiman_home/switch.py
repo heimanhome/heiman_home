@@ -9,6 +9,7 @@ from heimanconnect import DeviceProperty, HeimanDevice
 from homeassistant import config_entries
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -143,7 +144,7 @@ class HeimanSwitchEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SwitchE
         if not device:
             return False
 
-        return device.online is True
+        return device.online is not False
 
     @property
     def is_on(self) -> bool | None:
@@ -173,55 +174,67 @@ class HeimanSwitchEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SwitchE
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        # Write property via MQTT client using async_write_property method
-        if self.coordinator.mqtt_client:
-            # Build device info for child device detection
-            # Use raw_data if available, fallback to device attributes
-            device_info = {}
-            if hasattr(self._device, "raw_data") and self._device.raw_data:
-                device_info = {
-                    "deviceType": self._device.raw_data.get("deviceType"),
-                    "parentId": self._device.raw_data.get("parentId"),
-                }
-            else:
-                device_info = {
-                    "deviceType": getattr(self._device, "device_type", None),
-                    "parentId": getattr(self._device, "parent_id", None),
-                }
-
-            await self.coordinator.mqtt_client.async_write_property(
-                device_id=self._device.device_id,
-                product_id=self._device.product_id,
-                property_identifiers=[self._property_identifier],
-                values={self._property_identifier: True},
-                device_info=device_info,
+        if not self.coordinator.mqtt_client:
+            raise HomeAssistantError(
+                "MQTT client is not connected — cannot send switch command. "
+                "Check network or restart Home Assistant.",
+                translation_domain=DOMAIN,
+                translation_key="mqtt_unavailable",
             )
+        # Write property via MQTT client using async_write_property method
+        # Build device info for child device detection
+        # Use raw_data if available, fallback to device attributes
+        device_info = {}
+        if hasattr(self._device, "raw_data") and self._device.raw_data:
+            device_info = {
+                "deviceType": self._device.raw_data.get("deviceType"),
+                "parentId": self._device.raw_data.get("parentId"),
+            }
+        else:
+            device_info = {
+                "deviceType": getattr(self._device, "device_type", None),
+                "parentId": getattr(self._device, "parent_id", None),
+            }
+
+        await self.coordinator.mqtt_client.async_write_property(
+            device_id=self._device.device_id,
+            product_id=self._device.product_id,
+            property_identifiers=[self._property_identifier],
+            values={self._property_identifier: True},
+            device_info=device_info,
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        # Write property via MQTT client using async_write_property method
-        if self.coordinator.mqtt_client:
-            # Build device info for child device detection
-            # Use raw_data if available, fallback to device attributes
-            device_info = {}
-            if hasattr(self._device, "raw_data") and self._device.raw_data:
-                device_info = {
-                    "deviceType": self._device.raw_data.get("deviceType"),
-                    "parentId": self._device.raw_data.get("parentId"),
-                }
-            else:
-                device_info = {
-                    "deviceType": getattr(self._device, "device_type", None),
-                    "parentId": getattr(self._device, "parent_id", None),
-                }
-
-            await self.coordinator.mqtt_client.async_write_property(
-                device_id=self._device.device_id,
-                product_id=self._device.product_id,
-                property_identifiers=[self._property_identifier],
-                values={self._property_identifier: False},
-                device_info=device_info,
+        if not self.coordinator.mqtt_client:
+            raise HomeAssistantError(
+                "MQTT client is not connected — cannot send switch command. "
+                "Check network or restart Home Assistant.",
+                translation_domain=DOMAIN,
+                translation_key="mqtt_unavailable",
             )
+        # Write property via MQTT client using async_write_property method
+        # Build device info for child device detection
+        # Use raw_data if available, fallback to device attributes
+        device_info = {}
+        if hasattr(self._device, "raw_data") and self._device.raw_data:
+            device_info = {
+                "deviceType": self._device.raw_data.get("deviceType"),
+                "parentId": self._device.raw_data.get("parentId"),
+            }
+        else:
+            device_info = {
+                "deviceType": getattr(self._device, "device_type", None),
+                "parentId": getattr(self._device, "parent_id", None),
+            }
+
+        await self.coordinator.mqtt_client.async_write_property(
+            device_id=self._device.device_id,
+            product_id=self._device.product_id,
+            property_identifiers=[self._property_identifier],
+            values={self._property_identifier: False},
+            device_info=device_info,
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

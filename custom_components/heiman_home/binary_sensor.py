@@ -186,7 +186,7 @@ class HeimanBinarySensorEntity(
         if not device:
             return False
 
-        return device.online is True
+        return device.online is not False
 
     @property
     def is_on(self) -> bool | None:

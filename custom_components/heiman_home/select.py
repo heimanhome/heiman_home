@@ -9,6 +9,7 @@ from heimanconnect import DeviceProperty, HeimanDevice
 from homeassistant import config_entries
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -289,7 +290,7 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
         if not device:
             return False
 
-        return device.online is True
+        return device.online is not False
 
     @property
     def current_option(self) -> str | None:
@@ -324,33 +325,42 @@ class HeimanSelectEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], SelectE
 
         Args:
             option: Selected option
+
+        Raises:
+            HomeAssistantError: If MQTT client is not available to send command.
         """
+        if not self.coordinator.mqtt_client:
+            raise HomeAssistantError(
+                "MQTT client is not connected — cannot send select command. "
+                "Check network or restart Home Assistant.",
+                translation_domain=DOMAIN,
+                translation_key="mqtt_unavailable",
+            )
+
         # Get the actual value for this option
         value = self._get_value(description=option)
 
-        # Write property via MQTT client using async_write_property method
-        if self.coordinator.mqtt_client:
-            # Build device info for child device detection
-            # Use raw_data if available, fallback to device attributes
-            device_info = {}
-            if hasattr(self._device, "raw_data") and self._device.raw_data:
-                device_info = {
-                    "deviceType": self._device.raw_data.get("deviceType"),
-                    "parentId": self._device.raw_data.get("parentId"),
-                }
-            else:
-                device_info = {
-                    "deviceType": getattr(self._device, "device_type", None),
-                    "parentId": getattr(self._device, "parent_id", None),
-                }
+        # Build device info for child device detection
+        # Use raw_data if available, fallback to device attributes
+        device_info = {}
+        if hasattr(self._device, "raw_data") and self._device.raw_data:
+            device_info = {
+                "deviceType": self._device.raw_data.get("deviceType"),
+                "parentId": self._device.raw_data.get("parentId"),
+            }
+        else:
+            device_info = {
+                "deviceType": getattr(self._device, "device_type", None),
+                "parentId": getattr(self._device, "parent_id", None),
+            }
 
-            await self.coordinator.mqtt_client.async_write_property(
-                device_id=self._device.device_id,
-                product_id=self._device.product_id,
-                property_identifiers=[self._property_identifier],
-                values={self._property_identifier: value},
-                device_info=device_info,
-            )
+        await self.coordinator.mqtt_client.async_write_property(
+            device_id=self._device.device_id,
+            product_id=self._device.product_id,
+            property_identifiers=[self._property_identifier],
+            values={self._property_identifier: value},
+            device_info=device_info,
+        )
 
         # Update current option immediately for better UX
         self._current_option = option

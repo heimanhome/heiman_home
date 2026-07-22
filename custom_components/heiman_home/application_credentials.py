@@ -1,5 +1,6 @@
 """Application credentials platform for Heiman."""
 
+import asyncio
 import logging
 from json import JSONDecodeError
 from typing import NoReturn, cast
@@ -67,15 +68,101 @@ class HeimanOAuth2Implementation(AuthImplementation):
         """Make a token request."""
         session = async_get_clientsession(self.hass)
 
+        # --- Retry the HTTP POST on transient network errors ---
+        max_retries = 3
         resp = None
+        for attempt in range(max_retries):
+            try:
+                resp = await session.post(
+                    self.token_url,
+                    data=data,
+                    auth=BasicAuth(self.client_id, self.client_secret),
+                )
+                break  # POST succeeded, exit retry loop
+            except TimeoutError as err:
+                if attempt < max_retries - 1:
+                    delay = 2**attempt
+                    _LOGGER.warning(
+                        "Token request timeout (attempt %d/%d), "
+                        "retrying in %ds: %s",
+                        attempt + 1,
+                        max_retries,
+                        delay,
+                        err,
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    _LOGGER.error(
+                        "Token request timed out after %d attempts", max_retries
+                    )
+                    request_info = RequestInfo(
+                        url=URL(self.token_url),
+                        method="POST",
+                        headers={},  # type: ignore[arg-type]
+                        real_url=URL(self.token_url),
+                    )
+                    raise OAuth2TokenRequestTransientError(
+                        request_info=request_info,
+                        history=(),
+                        status=0,
+                        headers=None,
+                        domain=self.domain,
+                    ) from err
+            except OSError as err:
+                if attempt < max_retries - 1:
+                    delay = 2**attempt
+                    _LOGGER.warning(
+                        "Token request network error (attempt %d/%d), "
+                        "retrying in %ds: %s",
+                        attempt + 1,
+                        max_retries,
+                        delay,
+                        err,
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    _LOGGER.error(
+                        "Token request failed after %d attempts "
+                        "due to network error: %s",
+                        max_retries,
+                        err,
+                    )
+                    request_info = RequestInfo(
+                        url=URL(self.token_url),
+                        method="POST",
+                        headers={},  # type: ignore[arg-type]
+                        real_url=URL(self.token_url),
+                    )
+                    raise OAuth2TokenRequestTransientError(
+                        request_info=request_info,
+                        history=(),
+                        status=0,
+                        headers=None,
+                        domain=self.domain,
+                    ) from err
+            except ClientError as err:
+                # ClientError subclasses that represent protocol-level
+                # failures (not network-level) are NOT retried.
+                _LOGGER.error("Token request for %s failed: %s", self.domain, err)
+                request_info = getattr(err, "request_info", None)
+                if request_info is None:
+                    request_info = RequestInfo(
+                        url=URL(self.token_url),
+                        method="POST",
+                        headers={},  # type: ignore[arg-type]
+                        real_url=URL(self.token_url),
+                    )
+                raise OAuth2TokenRequestTransientError(
+                    request_info=request_info,
+                    history=getattr(err, "history", ()),
+                    status=getattr(err, "status", 0),
+                    headers=getattr(err, "headers", None),
+                    domain=self.domain,
+                ) from err
+
+        # At this point resp is guaranteed to be set
         result: dict | None = None
         try:
-            resp = await session.post(
-                self.token_url,
-                data=data,
-                auth=BasicAuth(self.client_id, self.client_secret),
-            )
-
             # Check for error status codes
             if resp.status >= 400:
                 try:
@@ -104,8 +191,6 @@ class HeimanOAuth2Implementation(AuthImplementation):
                 _LOGGER.exception("Failed to process token response")
                 self._raise_token_error(resp, from_exception=err)
             else:
-                # This check should never trigger - result should always be set
-                # if no exception was raised
                 if result is None:  # pragma: no cover
                     msg = "Unexpected: _token_request completed without returning"
                     raise AssertionError(msg)
@@ -113,44 +198,8 @@ class HeimanOAuth2Implementation(AuthImplementation):
                 return result
 
         except OAuth2TokenRequestError:
-            # Re-raise OAuth2 errors without modification
             raise
-        except ClientError as err:
-            _LOGGER.error("Token request for %s failed: %s", self.domain, err)
-            # Ensure we always have a valid RequestInfo
-            request_info = getattr(err, "request_info", None)
-            if request_info is None:
-                request_info = RequestInfo(
-                    url=URL(self.token_url),
-                    method="POST",
-                    headers={},  # type: ignore[arg-type]
-                    real_url=URL(self.token_url),
-                )
-            raise OAuth2TokenRequestTransientError(
-                request_info=request_info,
-                history=getattr(err, "history", ()),
-                status=getattr(err, "status", 0),
-                headers=getattr(err, "headers", None),
-                domain=self.domain,
-            ) from err
-        except TimeoutError as err:
-            _LOGGER.error("Token request for %s timed out: %s", self.domain, err)
-            # Create a minimal RequestInfo for the timeout error
-            request_info = RequestInfo(
-                url=URL(self.token_url),
-                method="POST",
-                headers={},  # type: ignore[arg-type]
-                real_url=URL(self.token_url),
-            )
-            raise OAuth2TokenRequestTransientError(
-                request_info=request_info,
-                history=(),
-                status=0,
-                headers=None,
-                domain=self.domain,
-            ) from err
         finally:
-            # Ensure response is released to avoid connection leaks
             if resp is not None:
                 resp.release()
 
@@ -164,15 +213,30 @@ class HeimanOAuth2Implementation(AuthImplementation):
 
         Args:
             resp: HTTP response object
-            error_code: Error code from response (optional)
+            error_code: Error code from response body (optional)
             from_exception: Original exception to chain from (optional)
 
         Raises:
             OAuth2TokenRequestReauthError: For authentication errors
-            OAuth2TokenRequestTransientError: For transient errors
-            OAuth2TokenRequestError: For other errors
+                that require the user to re-authorize.
+            OAuth2TokenRequestTransientError: For temporary errors
+                that may succeed on retry.
+            OAuth2TokenRequestError: For other errors.
         """
-        if error_code in ["invalid_grant", "invalid_token"]:
+        # ---- Re-authentication errors ----
+        # These errors mean the credentials are permanently invalid and
+        # the user must go through the OAuth2 flow again.
+        _REAUTH_CODES: frozenset[str] = frozenset(
+            {
+                "invalid_grant",
+                "invalid_token",
+                "unauthorized_client",
+                "invalid_client",
+                "access_denied",
+                "unsupported_grant_type",
+            }
+        )
+        if error_code and error_code in _REAUTH_CODES:
             raise OAuth2TokenRequestReauthError(
                 request_info=resp.request_info,
                 history=resp.history,
@@ -180,7 +244,21 @@ class HeimanOAuth2Implementation(AuthImplementation):
                 headers=resp.headers,
                 domain=self.domain,
             )
-        if resp.status >= 500:
+
+        # 401 Unauthorized without a recognized error_code also
+        # indicates a credential problem -> re-auth.
+        if resp.status == 401:
+            raise OAuth2TokenRequestReauthError(
+                request_info=resp.request_info,
+                history=resp.history,
+                status=resp.status,
+                headers=resp.headers,
+                domain=self.domain,
+            )
+
+        # ---- Transient / retryable errors ----
+        # Server errors (5xx) and rate-limiting (429) are temporary.
+        if resp.status >= 500 or resp.status == 429:
             raise OAuth2TokenRequestTransientError(
                 request_info=resp.request_info,
                 history=resp.history,
@@ -188,6 +266,8 @@ class HeimanOAuth2Implementation(AuthImplementation):
                 headers=resp.headers,
                 domain=self.domain,
             )
+
+        # ---- General error fallback ----
         raise OAuth2TokenRequestError(
             request_info=resp.request_info,
             history=resp.history,

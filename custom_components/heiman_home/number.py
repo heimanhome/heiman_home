@@ -9,6 +9,7 @@ from heimanconnect import DeviceProperty, HeimanDevice
 from homeassistant import config_entries
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -191,7 +192,7 @@ class HeimanNumberEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], NumberE
         if not device:
             return False
 
-        return device.online is True
+        return device.online is not False
 
     def _update_value_from_cache(self) -> bool:
         """Update value from coordinator cache (synchronous).
@@ -225,6 +226,9 @@ class HeimanNumberEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], NumberE
 
         Args:
             value: New value to set
+
+        Raises:
+            HomeAssistantError: If MQTT client is not available to send command.
         """
         _LOGGER.info(
             "Setting %s to %s for device %s",
@@ -233,29 +237,35 @@ class HeimanNumberEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], NumberE
             self._device.device_id,
         )
 
-        # Write property via MQTT client using async_write_property method
-        if self.coordinator.mqtt_client:
-            # Build device info for child device detection
-            # Use raw_data if available, fallback to device attributes
-            device_info = {}
-            if hasattr(self._device, "raw_data") and self._device.raw_data:
-                device_info = {
-                    "deviceType": self._device.raw_data.get("deviceType"),
-                    "parentId": self._device.raw_data.get("parentId"),
-                }
-            else:
-                device_info = {
-                    "deviceType": getattr(self._device, "device_type", None),
-                    "parentId": getattr(self._device, "parent_id", None),
-                }
-
-            await self.coordinator.mqtt_client.async_write_property(
-                device_id=self._device.device_id,
-                product_id=self._device.product_id,
-                property_identifiers=[self._property_identifier],
-                values={self._property_identifier: value},
-                device_info=device_info,
+        if not self.coordinator.mqtt_client:
+            raise HomeAssistantError(
+                "MQTT client is not connected — cannot send number command. "
+                "Check network or restart Home Assistant.",
+                translation_domain=DOMAIN,
+                translation_key="mqtt_unavailable",
             )
+
+        # Build device info for child device detection
+        # Use raw_data if available, fallback to device attributes
+        device_info = {}
+        if hasattr(self._device, "raw_data") and self._device.raw_data:
+            device_info = {
+                "deviceType": self._device.raw_data.get("deviceType"),
+                "parentId": self._device.raw_data.get("parentId"),
+            }
+        else:
+            device_info = {
+                "deviceType": getattr(self._device, "device_type", None),
+                "parentId": getattr(self._device, "parent_id", None),
+            }
+
+        await self.coordinator.mqtt_client.async_write_property(
+            device_id=self._device.device_id,
+            product_id=self._device.product_id,
+            property_identifiers=[self._property_identifier],
+            values={self._property_identifier: value},
+            device_info=device_info,
+        )
 
         # Update value immediately for better UX
         self._attr_native_value = value

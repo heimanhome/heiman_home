@@ -168,7 +168,7 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         if not device:
             return False
 
-        return device.online is True
+        return device.online is not False
 
     @property
     def installed_version(self) -> str | None:
