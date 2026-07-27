@@ -288,12 +288,6 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         if installed_version and not self._attr_latest_version:
             self._attr_latest_version = installed_version
 
-        _LOGGER.debug(
-            "Update entity %s: final state - installed=%s, latest=%s",
-            self._device.device_name,
-            self._attr_installed_version,
-            self._attr_latest_version,
-        )
 
         return True
 
