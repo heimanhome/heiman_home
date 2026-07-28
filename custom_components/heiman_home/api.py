@@ -126,7 +126,7 @@ class HeimanApiClient:
                 raise  # Never retry auth errors
             except HeimanConnectionError as err:
                 last_error = err
-            except (asyncio.TimeoutError, OSError) as err:
+            except (TimeoutError, OSError) as err:
                 last_error = err
             else:
                 # Should not be reached when the try-block contains a return,
@@ -136,8 +136,7 @@ class HeimanApiClient:
             if attempt < max_retries - 1:
                 delay = 2**attempt
                 _LOGGER.warning(
-                    "Transient error during %s (attempt %d/%d), "
-                    "retrying in %ds: %s",
+                    "Transient error during %s (attempt %d/%d), retrying in %ds: %s",
                     operation_name,
                     attempt + 1,
                     max_retries,
@@ -179,18 +178,12 @@ class HeimanApiClient:
                 "is no longer authorized: %s",
                 err,
             )
-            raise ConfigEntryAuthFailed(
-                f"Authentication failed: {err}"
-            ) from err
+            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(
-                f"Connection error getting user info: {err}"
-            ) from err
+            raise UpdateFailed(f"Connection error getting user info: {err}") from err
         except Exception as err:
             _LOGGER.exception("Unexpected error getting user info")
-            raise HeimanConnectionError(
-                f"Failed to get user info: {err}"
-            ) from err
+            raise HeimanConnectionError(f"Failed to get user info: {err}") from err
 
         _LOGGER.debug("Retrieved user info: %s", user.email)
         return user
@@ -216,21 +209,13 @@ class HeimanApiClient:
                 operation_name="get homes",
             )
         except HeimanAuthError as err:
-            _LOGGER.error(
-                "Authentication rejected by server during get_homes: %s", err
-            )
-            raise ConfigEntryAuthFailed(
-                f"Authentication failed: {err}"
-            ) from err
+            _LOGGER.error("Authentication rejected by server during get_homes: %s", err)
+            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(
-                f"Connection error getting homes: {err}"
-            ) from err
+            raise UpdateFailed(f"Connection error getting homes: {err}") from err
         except Exception as err:
             _LOGGER.exception("Unexpected error getting homes")
-            raise HeimanConnectionError(
-                f"Failed to get homes: {err}"
-            ) from err
+            raise HeimanConnectionError(f"Failed to get homes: {err}") from err
 
         _LOGGER.debug("Retrieved %d homes", len(homes))
         return homes
@@ -264,18 +249,12 @@ class HeimanApiClient:
             _LOGGER.error(
                 "Authentication rejected by server during get_devices: %s", err
             )
-            raise ConfigEntryAuthFailed(
-                f"Authentication failed: {err}"
-            ) from err
+            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(
-                f"Connection error getting devices: {err}"
-            ) from err
+            raise UpdateFailed(f"Connection error getting devices: {err}") from err
         except Exception as err:
             _LOGGER.exception("Unexpected error getting devices")
-            raise HeimanConnectionError(
-                f"Failed to get devices: {err}"
-            ) from err
+            raise HeimanConnectionError(f"Failed to get devices: {err}") from err
 
         _LOGGER.debug("Retrieved %d devices", len(devices))
         return devices
@@ -310,9 +289,7 @@ class HeimanApiClient:
                 device_id,
                 err,
             )
-            raise ConfigEntryAuthFailed(
-                f"Authentication failed: {err}"
-            ) from err
+            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
         except HeimanConnectionError as err:
             raise UpdateFailed(
                 f"Connection error getting device properties: {err}"
@@ -364,26 +341,17 @@ class HeimanApiClient:
             )
         except HeimanAuthError as err:
             _LOGGER.error(
-                "Authentication rejected by server during "
-                "control_device(%s, %s): %s",
+                "Authentication rejected by server during control_device(%s, %s): %s",
                 device_id,
                 property_identifier,
                 err,
             )
-            raise ConfigEntryAuthFailed(
-                f"Authentication failed: {err}"
-            ) from err
+            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
         except HeimanConnectionError as err:
-            raise UpdateFailed(
-                f"Connection error controlling device: {err}"
-            ) from err
+            raise UpdateFailed(f"Connection error controlling device: {err}") from err
         except Exception as err:
-            _LOGGER.exception(
-                "Unexpected error controlling device %s", device_id
-            )
-            raise HeimanConnectionError(
-                f"Failed to control device: {err}"
-            ) from err
+            _LOGGER.exception("Unexpected error controlling device %s", device_id)
+            raise HeimanConnectionError(f"Failed to control device: {err}") from err
 
         _LOGGER.debug(
             "Successfully controlled device %s: %s=%s",

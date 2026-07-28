@@ -36,6 +36,9 @@ _LOGGER = logging.getLogger(__name__)
 # - New device detection
 # - Firmware version updates
 UPDATE_INTERVAL = timedelta(minutes=30)
+MQTT_RECONNECT_BASE_DELAY = 10
+MQTT_RECONNECT_MAX_DELAY = 60
+MQTT_CONNECTED_CHECK_INTERVAL = 30
 
 
 def _infer_entity_type(prop_value: Any) -> str | None:
@@ -122,8 +125,9 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
         self._all_devices_cache: dict[str, HeimanDevice] = {}
         # Counter for MQTT reconnect attempts
         self._mqtt_reconnect_attempts: int = 0
-        # Maximum number of refresh+reconnect cycles before giving up
-        self._max_reconnect_cycles: int = 3
+        self._mqtt_connect_lock = asyncio.Lock()
+        self._mqtt_reconnect_task: asyncio.Task | None = None
+        self._mqtt_reconnect_shutdown = False
 
     async def _async_update_data(self) -> HeimanData:
         """Fetch data from Heiman API.
@@ -161,7 +165,7 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
         except UpdateFailed:
             # Re-raise UpdateFailed as-is to preserve retry_after and message
             raise
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             _LOGGER.error("Timeout during data update: %s", err)
             if self.data.devices:
                 # Graceful degradation: keep cached devices alive
@@ -172,9 +176,7 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                 )
                 self.data.errors["timeout"] = str(err)
                 return self.data
-            raise UpdateFailed(
-                f"Heiman API request timed out: {err}"
-            ) from err
+            raise UpdateFailed(f"Heiman API request timed out: {err}") from err
         except OSError as err:
             _LOGGER.error("Network error during data update: %s", err)
             if self.data.devices:
@@ -185,9 +187,7 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                 )
                 self.data.errors["network"] = str(err)
                 return self.data
-            raise UpdateFailed(
-                f"Heiman API network error: {err}"
-            ) from err
+            raise UpdateFailed(f"Heiman API network error: {err}") from err
         except Exception as err:
             _LOGGER.exception(
                 "Unexpected error during data update: %s (type=%s)",
@@ -206,9 +206,7 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                     len(self.data.devices),
                     err,
                 )
-                self.data.errors["unexpected"] = (
-                    f"{type(err).__name__}: {err}"
-                )
+                self.data.errors["unexpected"] = f"{type(err).__name__}: {err}"
                 return self.data
             raise UpdateFailed(f"Error fetching Heiman data: {err}") from err
 
@@ -666,9 +664,96 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
 
     async def async_init_mqtt_client(self) -> None:
         """Initialize MQTT client for real-time updates."""
-        if self.mqtt_client:
+        self._start_mqtt_reconnect_monitor()
+        await self._async_ensure_mqtt_connected()
+
+    async def async_shutdown_mqtt_client(self) -> None:
+        """Stop MQTT reconnect monitoring and disconnect the MQTT client."""
+        self._mqtt_reconnect_shutdown = True
+
+        if self._mqtt_reconnect_task:
+            self._mqtt_reconnect_task.cancel()
+            try:
+                await self._mqtt_reconnect_task
+            except asyncio.CancelledError:
+                pass
+            self._mqtt_reconnect_task = None
+
+        await self._async_reset_mqtt_client()
+
+    def _start_mqtt_reconnect_monitor(self) -> None:
+        """Start background MQTT reconnect monitoring."""
+        if self._mqtt_reconnect_task and not self._mqtt_reconnect_task.done():
             return
 
+        self._mqtt_reconnect_shutdown = False
+        self._mqtt_reconnect_task = self.hass.async_create_background_task(
+            self._async_mqtt_reconnect_monitor(),
+            name=f"{DOMAIN} MQTT reconnect monitor",
+        )
+
+    async def _async_mqtt_reconnect_monitor(self) -> None:
+        """Continuously restore MQTT after network or broker outages."""
+        delay = MQTT_CONNECTED_CHECK_INTERVAL
+
+        while not self._mqtt_reconnect_shutdown:
+            await asyncio.sleep(delay)
+
+            if self._mqtt_reconnect_shutdown:
+                return
+
+            if self._is_mqtt_connected():
+                self.data.errors.pop("mqtt", None)
+                self._mqtt_reconnect_attempts = 0
+                delay = MQTT_CONNECTED_CHECK_INTERVAL
+                continue
+
+            connected = await self._async_ensure_mqtt_connected(refresh_devices=True)
+            if connected:
+                delay = MQTT_CONNECTED_CHECK_INTERVAL
+            else:
+                delay = min(
+                    MQTT_RECONNECT_BASE_DELAY
+                    * (2 ** max(self._mqtt_reconnect_attempts - 1, 0)),
+                    MQTT_RECONNECT_MAX_DELAY,
+                )
+
+    def _is_mqtt_connected(self) -> bool:
+        """Return whether MQTT is currently connected."""
+        return bool(
+            self.mqtt_client
+            and getattr(self.mqtt_client, "is_connected", False)
+        )
+
+    async def _async_ensure_mqtt_connected(
+        self,
+        *,
+        refresh_devices: bool = False,
+    ) -> bool:
+        """Connect MQTT if needed and keep retry state for the monitor."""
+        if self._is_mqtt_connected():
+            return True
+
+        async with self._mqtt_connect_lock:
+            if self._is_mqtt_connected():
+                return True
+
+            if refresh_devices:
+                await self._async_refresh_devices_for_mqtt()
+
+            await self._async_reset_mqtt_client()
+
+            connected = await self._async_connect_mqtt_client()
+            if connected:
+                self._mqtt_reconnect_attempts = 0
+                self.data.errors.pop("mqtt", None)
+                return True
+
+            self._mqtt_reconnect_attempts += 1
+            return False
+
+    async def _async_connect_mqtt_client(self) -> bool:
+        """Create and connect the MQTT client once."""
         try:
             # Get access token from config entry (preferred) or OAuth2 session.
             access_token = None
@@ -693,11 +778,11 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                 _LOGGER.warning(
                     "Cannot initialize MQTT: access_token not available from any source"
                 )
-                return
+                return False
 
             if not user_id:
                 _LOGGER.warning("Cannot initialize MQTT: user_id not available")
-                return
+                return False
 
             # Get user display name (prefer nickName, fallback to email)
             user_display_name = None
@@ -729,165 +814,74 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
                 dict(self._all_devices_cache) if self._all_devices_cache else {}
             )
 
-            # Create and connect MQTT client with retry
-            max_retries = 5
-            retry_delay = 5
-            last_error = None
-
-            for attempt in range(max_retries):
-                try:
-                    self.mqtt_client = HeimanMqttClient(
-                        hass=self.hass,
-                        access_token=access_token,
-                        user_id=user_id,
-                        user_display_name=user_display_name,
-                        cloud_client=cloud_client,
-                        devices=devices_dict,
-                    )
-
-                    await self.mqtt_client.connect()
-
-                    # Register callback for device property updates
-                    self.mqtt_client.register_device_callback(
-                        self._on_device_property_update
-                    )
-
-                    # Register callback for device online/offline status changes
-                    self.mqtt_client.register_online_callback(
-                        self._on_device_status_change
-                    )
-
-                    _LOGGER.info("MQTT client initialized and connected successfully")
-                    self._mqtt_reconnect_attempts = 0
-                    return
-
-                except HeimanMQTTError as err:
-                    last_error = err
-                    _LOGGER.warning(
-                        "MQTT connection attempt %d/%d failed: %s",
-                        attempt + 1,
-                        max_retries,
-                        err,
-                    )
-                    if attempt < max_retries - 1:
-                        await asyncio.sleep(retry_delay)
-                        retry_delay *= 2
-
-                except Exception as err:  # noqa: BLE001
-                    last_error = err
-                    _LOGGER.warning(
-                        "Unexpected MQTT connection error attempt %d/%d: %s",
-                        attempt + 1,
-                        max_retries,
-                        err,
-                    )
-                    if attempt < max_retries - 1:
-                        await asyncio.sleep(retry_delay)
-                        retry_delay *= 2
-
-            _LOGGER.error(
-                "MQTT client initialization failed after %d attempts: %s",
-                max_retries,
-                last_error,
+            self.mqtt_client = HeimanMqttClient(
+                hass=self.hass,
+                access_token=access_token,
+                user_id=user_id,
+                user_display_name=user_display_name,
+                cloud_client=cloud_client,
+                devices=devices_dict,
             )
-            if last_error and "Name does not resolve" in str(last_error):
-                _LOGGER.error(
-                    "DNS resolution failed. Please check your network connectivity "
-                    "and ensure spmqtt.heiman.cn is accessible."
-                )
 
-            # Increment reconnect attempt counter
-            self._mqtt_reconnect_attempts += 1
+            await self.mqtt_client.connect()
 
-            # After 5 failures, try to refresh device list and reconnect
-            # Only attempt refresh+reconnect if we haven't exceeded max cycles
-            if self._mqtt_reconnect_attempts <= self._max_reconnect_cycles:
-                _LOGGER.info(
-                    "MQTT connection failed %d times (cycle %d/%d), "
-                    "refreshing device list and retrying",
-                    max_retries,
-                    self._mqtt_reconnect_attempts,
-                    self._max_reconnect_cycles,
+            self.mqtt_client.register_device_callback(
+                self._on_device_property_update
+            )
+
+            if hasattr(self.mqtt_client, "register_online_callback"):
+                self.mqtt_client.register_online_callback(
+                    self._on_device_status_change
                 )
-                await self._async_refresh_and_reconnect_mqtt()
             else:
-                _LOGGER.error(
-                    "MQTT connection failed after %d refresh cycles. "
-                    "Stopping reconnection attempts. "
-                    "Please check your network or restart Home Assistant.",
-                    self._max_reconnect_cycles,
+                _LOGGER.debug(
+                    "MQTT online callback is not supported by this heimanconnect "
+                    "version; online state will be refreshed by polling"
                 )
-                # Fire a persistent HA event so users / automations can react
-                # to the permanent MQTT disconnection.
-                self.hass.bus.fire(
-                    f"{DOMAIN}_mqtt_permanently_disconnected",
-                    {
-                        "reason": "max_reconnect_cycles_exhausted",
-                        "cycles": self._max_reconnect_cycles,
-                        "last_error": str(last_error) if last_error else "unknown",
-                    },
-                )
-                # Also persist a warning in the coordinator's error dictionary
-                # so it is visible in the integration's diagnostic sensors.
-                self.data.errors["mqtt"] = (
-                    f"MQTT permanently disconnected after {self._max_reconnect_cycles} "
-                    f"retry cycles. Device online/offline status and control commands "
-                    f"will not work until Home Assistant is restarted."
-                )
+
+            _LOGGER.info("MQTT client initialized and connected successfully")
+            return True
 
         except HeimanMQTTError as err:
-            _LOGGER.error("Failed to initialize MQTT client: %s", err)
+            _LOGGER.warning("Failed to connect MQTT client: %s", err)
+            if "Name does not resolve" in str(err):
+                _LOGGER.warning(
+                    "DNS resolution failed. MQTT will retry in the background."
+                )
+            self.data.errors["mqtt"] = str(err)
         except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Unexpected error initializing MQTT client: %s", err)
+            _LOGGER.warning("Unexpected error connecting MQTT client: %s", err)
+            self.data.errors["mqtt"] = f"{type(err).__name__}: {err}"
 
-    async def _async_refresh_and_reconnect_mqtt(self) -> None:
-        """Refresh device list and reconnect MQTT client.
+        await self._async_reset_mqtt_client()
+        return False
 
-        This method is called after multiple MQTT connection failures to:
-        1. Refresh the device list from API (to get fresh device info)
-        2. Reset the MQTT client
-        3. Attempt to reconnect MQTT with updated device list
-        """
+    async def _async_refresh_devices_for_mqtt(self) -> None:
+        """Refresh device metadata used to rebuild MQTT child-device topics."""
         try:
             _LOGGER.info("Refreshing device list before MQTT reconnect")
 
-            # Get home ID
             home_id = self.config_entry.data.get(CONF_HOME_ID)
             if not home_id:
                 _LOGGER.error("Home ID not found in config entry")
                 return
 
-            # Refresh device list from API
             await self._fetch_and_process_devices(home_id)
 
-            # Reset MQTT client
-            self._reset_mqtt_client()
-
-            # Wait a moment before reconnecting
-            await asyncio.sleep(5)
-
-            # Reinitialize MQTT client with refreshed device list
-            await self.async_init_mqtt_client()
-
         except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Failed to refresh and reconnect MQTT: %s", err)
-            # Reset counter to avoid infinite loop
-            self._mqtt_reconnect_attempts = 0
+            _LOGGER.debug("Failed to refresh devices before MQTT reconnect: %s", err)
 
-    def _reset_mqtt_client(self) -> None:
+    async def _async_reset_mqtt_client(self) -> None:
         """Reset MQTT client to allow reinitialization."""
         if self.mqtt_client:
             try:
-                # Disconnect if connected
                 if hasattr(self.mqtt_client, "disconnect"):
-                    try:
-                        self.mqtt_client.disconnect()
-                    except Exception as err:  # noqa: BLE001
-                        _LOGGER.debug("Error disconnecting MQTT client: %s", err)
+                    result = self.mqtt_client.disconnect()
+                    if hasattr(result, "__await__"):
+                        await result
             except Exception as err:  # noqa: BLE001
-                _LOGGER.debug("Error accessing MQTT client methods: %s", err)
+                _LOGGER.debug("Error disconnecting MQTT client: %s", err)
 
-            # Set to None to allow reinitialization
             self.mqtt_client = None
 
         _LOGGER.debug("MQTT client has been reset")

@@ -83,8 +83,7 @@ class HeimanOAuth2Implementation(AuthImplementation):
                 if attempt < max_retries - 1:
                     delay = 2**attempt
                     _LOGGER.warning(
-                        "Token request timeout (attempt %d/%d), "
-                        "retrying in %ds: %s",
+                        "Token request timeout (attempt %d/%d), retrying in %ds: %s",
                         attempt + 1,
                         max_retries,
                         delay,

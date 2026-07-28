@@ -43,6 +43,21 @@ jobs:
           fi
           echo "Version validation passed: $RELEASE_VERSION"
 
+      - name: Get requirements from manifest
+        id: get_requirements
+        run: |
+          # Read requirements from manifest.json
+          REQUIREMENTS=$(python3 -c "
+          import json
+          manifest = json.load(open('custom_components/heiman_home/manifest.json'))
+          # Extract heiman-connect version from requirements
+          for req in manifest.get('requirements', []):
+              if req.startswith('heiman-connect=='):
+                  print(f'heiman_connect={req.split(\"==\")[1]}')
+          ")
+          echo "$REQUIREMENTS" >> $GITHUB_OUTPUT
+          echo "Read requirements: $REQUIREMENTS"
+
       - name: Generate changelog
         id: changelog
         run: |
@@ -89,7 +104,7 @@ jobs:
             
             ## Requirements
             - Home Assistant >= 2026.3.0
-            - heiman-connect==${{ steps.get_version.outputs.version }}
+            - heiman-connect==${{ steps.get_requirements.outputs.heiman_connect }}
           files: |
             heiman_home.zip
           draft: false

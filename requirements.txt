@@ -1,19 +1,19 @@
 # Core dependencies
-heiman-connect==1.0.19
+heiman-connect==1.0.24
 
 # Development dependencies
 pytest>=9.1.1
 pytest-cov>=7.1.0
 pytest-asyncio>=1.4.0
-homeassistant>=2026.6.4
+homeassistant>=2026.7.4
 
 # Linting and formatting
-ruff>=0.15.20
+ruff>=0.16.0
 pylint>=4.0.6
 mypy>=2.1.0
 
 # Pre-commit
-pre-commit>=4.6.0
+pre-commit>=4.6.1
 
 # Type stubs
 types-requests>=2.33.0.20260518

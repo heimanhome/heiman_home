@@ -288,7 +288,6 @@ class HeimanUpdateEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], UpdateE
         if installed_version and not self._attr_latest_version:
             self._attr_latest_version = installed_version
 
-
         return True
 
     def _version_is_newer(self, latest_version: str, installed_version: str) -> bool:

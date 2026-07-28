@@ -15,8 +15,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
     ConfigEntryNotReady,
-    OAuth2TokenRequestError,
-    OAuth2TokenRequestReauthError,
     ServiceValidationError,
 )
 from homeassistant.helpers import config_validation as cv
@@ -100,20 +98,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: HeimanConfigEntry) -> bo
         ) from err
 
     session = OAuth2Session(hass, entry, implementation)
-
-    try:
-        await session.async_ensure_token_valid()
-    except OAuth2TokenRequestReauthError as err:
-        raise ConfigEntryAuthFailed from err
-    except OAuth2TokenRequestError as err:
-        raise ConfigEntryNotReady from err
-    except ValueError as err:
-        _LOGGER.error(
-            "OAuth2 token validation failed: %s. "
-            "The refresh token may have expired. Please re-authenticate",
-            err,
-        )
-        raise ConfigEntryAuthFailed("Token expired") from err
 
     api_client = HeimanApiClient(hass=hass, session=session)
 
@@ -262,17 +246,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: HeimanConfigEntry) -> b
                     hass.services.async_remove(DOMAIN, SERVICE_READ_DEVICE_PROPERTIES)
         return True
 
-    # Disconnect MQTT client
-    mqtt_client = getattr(coordinator, "mqtt_client", None)
-    if mqtt_client is not None:
+    # Stop MQTT reconnect monitoring and disconnect MQTT client.
+    if hasattr(coordinator, "async_shutdown_mqtt_client"):
         try:
-            await _async_call_cleanup_method(
-                mqtt_client,
-                (
-                    "async_disconnect",
-                    "disconnect",
-                ),
-            )
+            await coordinator.async_shutdown_mqtt_client()
         except Exception:
             _LOGGER.exception("Error disconnecting MQTT client during unload")
 
