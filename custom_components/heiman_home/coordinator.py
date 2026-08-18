@@ -721,8 +721,7 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
     def _is_mqtt_connected(self) -> bool:
         """Return whether MQTT is currently connected."""
         return bool(
-            self.mqtt_client
-            and getattr(self.mqtt_client, "is_connected", False)
+            self.mqtt_client and getattr(self.mqtt_client, "is_connected", False)
         )
 
     async def _async_ensure_mqtt_connected(
@@ -825,14 +824,10 @@ class HeimanDataUpdateCoordinator(DataUpdateCoordinator[HeimanData]):
 
             await self.mqtt_client.connect()
 
-            self.mqtt_client.register_device_callback(
-                self._on_device_property_update
-            )
+            self.mqtt_client.register_device_callback(self._on_device_property_update)
 
             if hasattr(self.mqtt_client, "register_online_callback"):
-                self.mqtt_client.register_online_callback(
-                    self._on_device_status_change
-                )
+                self.mqtt_client.register_online_callback(self._on_device_status_change)
             else:
                 _LOGGER.debug(
                     "MQTT online callback is not supported by this heimanconnect "
