@@ -242,7 +242,7 @@ class HeimanButtonEntity(CoordinatorEntity[HeimanDataUpdateCoordinator], ButtonE
             )
 
         # Get value to write (use default value 1 for boolean buttons)
-        value_to_write = prop.value if prop.value is not None else 1
+        value_to_write = 1
 
         _LOGGER.info(
             "Button %s pressed on device %s, writing value=%s",
