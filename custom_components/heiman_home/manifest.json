@@ -10,6 +10,6 @@
   "issue_tracker": "https://github.com/heimanhome/heiman_home/issues",
   "loggers": ["heimanconnect"],
   "quality_scale": "bronze",
-  "requirements": ["heiman-connect==1.0.26"],
+  "requirements": ["heiman-connect==1.0.27"],
   "version": "1.0.5"
 }
