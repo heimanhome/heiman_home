@@ -11,5 +11,5 @@
   "loggers": ["heimanconnect"],
   "quality_scale": "bronze",
   "requirements": ["heiman-connect==1.0.28"],
-  "version": "1.0.3"
+  "version": "1.0.4"
 }
